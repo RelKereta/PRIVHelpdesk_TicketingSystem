@@ -4,7 +4,7 @@
   1)  Raisya Jasmine Zahira
   2)  Farrell Sevillen Arya
   3)  Emanuella Ivana Karunia
-  4)  Marsya Putra
+  4)  Marsya Putra 
  
 - Currently consisting:
 - Vite + React
