@@ -1,9 +1,8 @@
-# PRIV Helpdesk Ticketing
 <div align="center">
   <img src="assetsORimages/PRIVLogo.jpg" width="300" height="auto" />
+  # PRIV Helpdesk Ticketing
+  ## WADS Final Project, Binus University Global Class
 </div>
-
-## WADS Final Project, Binus University Global Class
 - Members: (L4AC)
   1)  Raisya Jasmine Zahira
   2)  Farrell Sevillen Arya
