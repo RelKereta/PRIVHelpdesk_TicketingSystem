@@ -9,13 +9,15 @@
  ## Installation Guide 
  1) Install Dependencies for both frontend and backend:
     - npm install (backend):
-      > express
-      > mongoose
-      > cos
-      > dotenv
+      >
+        - express
+        - mongoose
+        - cos
+        - dotenv
     - npm install (frontend)
-      > react-router-dom [handling routing in React]
-      > react and react-don [UI Building]
+      >
+        - react-router-dom [handling routing in React]
+        - react and react-don [UI Building]
 
   ## Note (when running)  
   - make sure you have MongoDB runing locally (check environment variables and set it up)
@@ -24,7 +26,7 @@
   - npm run dev (frontend)
   - npm start (backend) OR node server.js
     
-- Currently consisting:
+  > Currently consisting:
 - Vite + React
 - CSS (not yet tailwind -- but plan 2)
 - API Endpoint - POST tickets
