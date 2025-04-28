@@ -6,34 +6,64 @@ import './CreateTicket.css';
 function CreateTicket() {
   const navigate = useNavigate();
   
+  // Initialize state for ticket form data
   const [ticketData, setTicketData] = useState({
     subject: '',
-    priority: 'Medium',
+    priority: 'Medium', 
     type: 'Question',
-    team: '',
+    team: '', // Which team/division handling the ticket
+    description: '', // Added for description
   });
 
+  // Handle input size change and update state
   const handleChange = (e) => {
     const { name, value } = e.target;
     setTicketData({
-      ...ticketData,
-      [name]: value
+      ...ticketData, // Spread the existing state
+      [name]: value, // Dynamically update the field value based on name
     });
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  // Form Submission Handler
+  const handleSubmit = async (e) => {
+    e.preventDefault(); // Avoid unwanted refresh
     console.log('Ticket data submitted:', ticketData);
+
+    // Create new ticket object including default user info
     const newTicket = {
       ...ticketData,
+      userId: '12345',  // Default user ID
+      username: 'John Doe',  // Default username
       id: Date.now(),
       status: 'Open',
       contact: 'System Assigned',
       resolvedDate: null,
-      createdDate: new Date().toISOString()
+      createdDate: new Date().toISOString(),
     };
-    console.log('New ticket created:', newTicket);
-    navigate('/');
+
+    try {
+      const response = await fetch('http://localhost:3000/api/tickets', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newTicket),
+      });
+
+      if (response.ok) {
+        alert('✅ Ticket successfully created!'); // Show success message
+        setTicketData({ // Reset form fields to empty
+          subject: '',
+          priority: 'Medium',
+          type: 'Question',
+          team: '',
+          description: '',
+        });
+        navigate('/'); // Redirect to dashboard/home
+      } else {
+        alert('❌ Failed to create ticket'); // Show failure message
+      }
+    } catch (error) {
+      alert('❌ Error: ' + error.message); // Show error message
+    }
   };
 
   return (
@@ -43,7 +73,7 @@ function CreateTicket() {
         <div className="create-ticket-header">
           <h1>Create New Ticket</h1>
         </div>
-        
+
         <form className="create-ticket-form" onSubmit={handleSubmit}>
           <div className="form-group">
             <label htmlFor="subject">Subject *</label>
@@ -57,7 +87,7 @@ function CreateTicket() {
               placeholder="Enter a clear subject that describes your issue"
             />
           </div>
-          
+
           <div className="form-group">
             <label htmlFor="priority">Priority *</label>
             <select
@@ -73,7 +103,7 @@ function CreateTicket() {
               <option value="Low">Low (16h resolution)</option>
             </select>
           </div>
-          
+
           <div className="form-group">
             <label htmlFor="type">Type *</label>
             <select
@@ -90,7 +120,7 @@ function CreateTicket() {
               <option value="Unspecified">Unspecified</option>
             </select>
           </div>
-          
+
           <div className="form-group">
             <label htmlFor="team">Your Team *</label>
             <select
@@ -108,18 +138,18 @@ function CreateTicket() {
               <option value="Marketing">Marketing</option>
             </select>
           </div>
-          
+
           <div className="form-group">
             <label htmlFor="description">Description</label>
             <textarea
               id="description"
               name="description"
-              value={ticketData.description || ''}
+              value={ticketData.description}
               onChange={handleChange}
               placeholder="Please provide additional details about your issue"
             />
           </div>
-          
+
           <div className="form-actions">
             <button type="button" className="cancel-button" onClick={() => navigate('/')}>Cancel</button>
             <button type="submit" className="submit-button">Submit Ticket</button>

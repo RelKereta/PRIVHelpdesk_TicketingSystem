@@ -1,0 +1,28 @@
+# Node modules
+node_modules/
+
+# Environment files
+.env
+
+# Optional: You can also add logs and temp files
+*.log
+*.tmp
+
+# Operating system files
+.DS_Store          # macOS
+Thumbs.db          # Windows
+
+# IDE or editor-specific files
+.vscode/           # VSCode settings
+.idea/             # JetBrains (IntelliJ, WebStorm, etc.)
+*.sublime-workspace
+*.sublime-project   # Sublime Text
+
+# npm package-lock files should be ignored if you're not using them in a specific way
+package-lock.json
+yarn.lock          # If you're using Yarn, or you can choose to keep this file
+
+# Logs and backups created by text editors or IDEs
+*.swp
+*.bak
+*.tmp
