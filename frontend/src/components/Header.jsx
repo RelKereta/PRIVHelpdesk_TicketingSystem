@@ -1,4 +1,5 @@
 import React from 'react';
+<<<<<<< HEAD
 import { Link, useLocation } from 'react-router-dom';
 import './Header.css';
 
@@ -29,6 +30,13 @@ function Header({ isSidebarExpanded }) {
           Contact
         </Link>
       </nav>
+=======
+
+function Header() {
+  return (
+    <header className="header">
+      <h1>Helpdesk Ticket System</h1>
+>>>>>>> 7059d9936a4d3662c2ec06ce3e0d388088e365f0
     </header>
   );
 }
