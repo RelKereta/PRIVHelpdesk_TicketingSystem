@@ -5,6 +5,8 @@ import Solutions from './pages/Solutions';
 import Community from './pages/Community';
 import Resources from './pages/Resources';
 import Contact from './pages/Contact';
+import Chatbot from './pages/Chatbot';
+import CreateTicket from './pages/CreateTicket';
 
 function App() {
   return (
@@ -15,6 +17,8 @@ function App() {
         <Route path="/community" element={<Community />} />
         <Route path="/resources" element={<Resources />} />
         <Route path="/contact" element={<Contact />} />
+        <Route path="/chatbot" element={<Chatbot />} />
+        <Route path="/create-ticket" element={<CreateTicket />} />
       </Routes>
     </Router>
   );
