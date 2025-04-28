@@ -3,6 +3,7 @@
   
   # PRIV Helpdesk Ticketing
   ### WADS Final Project, Binus University Global Class
+</div> 
   
  ### Contributors: (L4AC)
   1)  Raisya Jasmine Zahira
@@ -10,7 +11,7 @@
   3)  Emanuella Ivana Karunia
   4)  Marsya Putra
 
- </div>
+ 
  
  ## Installation Guide 
  1) Install Dependencies for both frontend and backend:
