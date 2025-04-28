@@ -2,6 +2,7 @@
 <div align="center">
   <img src="assetsORimages/PRIVLogo.jpg" width="300" height="auto" />
 </div>
+
 ## WADS Final Project, Binus University Global Class
 - Members: (L4AC)
   1)  Raisya Jasmine Zahira
