@@ -12,15 +12,15 @@
   4)  Marsya Putra
 
  
- 
  ## Installation Guide 
+ 
  1) Install Dependencies for both frontend and backend:
-     npm install (backend):
+     - npm install (backend):
         - express
         - mongoose
         - cos
         - dotenv
-     npm install (frontend)
+     - npm install (frontend)
         - react-router-dom (handling routing in React)
         - react and react-don (UI Building)
 
