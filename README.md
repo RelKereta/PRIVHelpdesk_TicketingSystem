@@ -4,26 +4,24 @@
   # PRIV Helpdesk Ticketing
   ### WADS Final Project, Binus University Global Class
   
-</div>
-
-- Members: (L4AC)
+ ## Members: (L4AC)
   1)  Raisya Jasmine Zahira
   2)  Farrell Sevillen Arya
   3)  Emanuella Ivana Karunia
-  4)  Marsya Putra 
+  4)  Marsya Putra
 
+ </div>
+ 
  ## Installation Guide 
  1) Install Dependencies for both frontend and backend:
-    - npm install (backend):
-      >
+    > npm install (backend):
         - express
         - mongoose
         - cos
         - dotenv
-    - npm install (frontend)
-      >
-        - react-router-dom [handling routing in React]
-        - react and react-don [UI Building]
+    > npm install (frontend)
+        - react-router-dom (handling routing in React)
+        - react and react-don (UI Building)
 
   ## Note (when running)  
   - make sure you have MongoDB runing locally (check environment variables and set it up)
