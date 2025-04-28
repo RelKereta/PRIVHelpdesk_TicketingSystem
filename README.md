@@ -2,7 +2,7 @@
   <img src="assetsORimages/PRIVLogo.jpg" width="300" height="auto" />
   
   # PRIV Helpdesk Ticketing
-  ## WADS Final Project, Binus University Global Class
+  ### WADS Final Project, Binus University Global Class
   
 </div>
 - Members: (L4AC)
