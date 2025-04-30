@@ -7,8 +7,7 @@ function SignIn() {
   const [formData, setFormData] = useState({
     email: '',
     password: '',
-    rememberMe: false,
-    newsletter: false
+    rememberMe: false
   });
   const [showPassword, setShowPassword] = useState(false);
 
@@ -90,16 +89,6 @@ function SignIn() {
                     required
                   />
                   <span>Agree to our Terms of use and Privacy Policy</span>
-                </label>
-                
-                <label className="checkbox-label">
-                  <input
-                    type="checkbox"
-                    name="newsletter"
-                    checked={formData.newsletter}
-                    onChange={handleChange}
-                  />
-                  <span>Subscribe to our monthly newsletter</span>
                 </label>
               </div>
 
