@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth, AuthProvider } from './context/AuthContext';
 import Dashboard from './pages/Dashboard';
@@ -27,6 +27,25 @@ const AuthenticatedRoute = ({ children }) => {
 };
 
 function App() {
+  useEffect(() => {
+    // Disable bfcache
+    window.addEventListener('unload', () => {
+      // This empty function prevents bfcache
+    });
+
+    // Optional: Handle page visibility changes
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'hidden') {
+        // Clean up any resources if needed
+      }
+    });
+
+    return () => {
+      window.removeEventListener('unload', () => {});
+      document.removeEventListener('visibilitychange', () => {});
+    };
+  }, []);
+
   return (
     <AuthProvider>
       <Router>

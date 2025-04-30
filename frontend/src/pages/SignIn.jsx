@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import './SignIn.css';
-import eyeClosed from '../../../PRIVHelpdesk_TicketingSystem/frontend/eye00.png';
-import eyeOpen from '../../../PRIVHelpdesk_TicketingSystem/frontend/eye01.png';
+import eyeClosed from "../assets/eye00.png";
+import eyeOpen from "../assets/eye01.png";
 
 const SignIn = () => {
   const [email, setEmail] = useState('');
