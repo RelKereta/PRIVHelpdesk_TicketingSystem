@@ -7,11 +7,13 @@ import Resources from './pages/Resources';
 import Contact from './pages/Contact';
 import Chatbot from './pages/Chatbot';
 import CreateTicket from './pages/CreateTicket';
+import SignIn from './pages/SignIn';
 
 function App() {
   return (
     <Router>
       <Routes>
+        <Route path="/signin" element={<SignIn />} />
         <Route path="/" element={<Dashboard />} />
         <Route path="/solutions" element={<Solutions />} />
         <Route path="/community" element={<Community />} />
