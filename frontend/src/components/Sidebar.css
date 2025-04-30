@@ -1,0 +1,130 @@
+.sidebar {
+  width: 50px;
+  background-color: #2c3e50;
+  color: white;
+  min-height: 100vh;
+  padding: 20px 10px;
+  transition: all 0.3s ease;
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 1000;
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+}
+
+.sidebar.collapsed {
+  width: 50px;
+}
+
+.toggle-btn {
+  position: relative;
+  cursor: pointer;
+  z-index: 10;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  border-radius: 8px;
+  transition: background-color 0.3s ease;
+  margin-left: 10px;
+}
+
+.toggle-btn:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.hamburger-icon {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 4px;
+}
+
+.hamburger-icon span {
+  display: block;
+  width: 20px;
+  height: 2px;
+  background-color: white;
+  border-radius: 2px;
+  transition: all 0.3s ease;
+}
+
+.profile-section {
+  margin: 40px 0 30px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.sidebar:not(.collapsed) .profile-section {
+  opacity: 1;
+  visibility: visible;
+}
+
+.profile-pic {
+  width: 60px;
+  height: 60px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  margin: 0 auto 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.profile-info {
+  margin-top: 10px;
+}
+
+.profile-info h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.profile-info p {
+  margin: 5px 0 0;
+  font-size: 12px;
+  opacity: 0.8;
+}
+
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 20px;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.sidebar:not(.collapsed) .sidebar-nav {
+  opacity: 1;
+  visibility: visible;
+}
+
+.sidebar:not(.collapsed) {
+  width: 220px;
+  padding: 20px;
+}
+
+.sidebar-nav a {
+  color: white;
+  text-decoration: none;
+  padding: 12px 15px;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+}
+
+.sidebar-nav a:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  transform: translateX(5px);
+} 
