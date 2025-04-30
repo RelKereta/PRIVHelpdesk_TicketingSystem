@@ -7,10 +7,12 @@ const connectToDatabase = require('./connect');
 const app = express();
 const PORT = process.env.PORT || 3000;
 const Ticket = require('./models/ticket');
+const userRoutes = require('./routes/userRoutes'); // Import user routes
 
 // Middleware to parse JSON
 app.use(cors());  // <-- Use cors middleware
 app.use(express.json());
+app.use('/api/users', userRoutes); // <-- Use user routes
 
 // Connect to DB
 (async () => {
@@ -46,6 +48,7 @@ process.on('SIGINT', async () => {
   process.exit(0);
 });
 
+// ROUTE TO UPDATE USER PASSWORD
 
 // require('dotenv').config(); // Load environment variables early
 // const express = require('express');
