@@ -2,18 +2,12 @@ body {
   margin: 0;
   font-family: 'Poppins', sans-serif;
   background: #f5f7fa;
-<<<<<<< HEAD
   min-height: 100vh;
-=======
->>>>>>> 7059d9936a4d3662c2ec06ce3e0d388088e365f0
 }
 
 .dashboard {
   display: flex;
-<<<<<<< HEAD
   min-height: 100vh;
-=======
->>>>>>> 7059d9936a4d3662c2ec06ce3e0d388088e365f0
 }
 
 .sidebar {
@@ -23,13 +17,10 @@ body {
   min-height: 100vh;
   padding: 20px;
   transition: width 0.3s;
-<<<<<<< HEAD
   position: fixed;
   left: 0;
   top: 0;
   z-index: 1000;
-=======
->>>>>>> 7059d9936a4d3662c2ec06ce3e0d388088e365f0
 }
 
 .sidebar.collapsed {
@@ -37,7 +28,6 @@ body {
 }
 
 .toggle-btn {
-<<<<<<< HEAD
   position: absolute;
   top: 20px;
   left: 20px;
@@ -66,15 +56,6 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-=======
-  font-size: 24px;
-  cursor: pointer;
-}
-
-.profile-section {
-  margin: 20px 0;
-  text-align: center;
->>>>>>> 7059d9936a4d3662c2ec06ce3e0d388088e365f0
 }
 
 .profile-pic {
@@ -83,7 +64,6 @@ body {
   background: white;
   border-radius: 50%;
   margin: 0 auto 10px;
-<<<<<<< HEAD
   display: flex;
   align-items: center;
   justify-content: center;
@@ -128,34 +108,20 @@ nav a {
 
 nav a:hover {
   background-color: rgba(255, 255, 255, 0.1);
-=======
-}
-
-nav a {
-  display: block;
-  color: white;
-  margin: 15px 0;
-  text-decoration: none;
->>>>>>> 7059d9936a4d3662c2ec06ce3e0d388088e365f0
 }
 
 .main-content {
   flex: 1;
-<<<<<<< HEAD
   margin-left: 220px;
   transition: margin-left 0.3s;
 }
 
 .main-content.sidebar-collapsed {
   margin-left: 70px;
-=======
-  padding: 20px;
->>>>>>> 7059d9936a4d3662c2ec06ce3e0d388088e365f0
 }
 
 .header {
   background-color: white;
-<<<<<<< HEAD
   padding: 15px 30px;
   box-shadow: 0 2px 5px rgba(0,0,0,0.1);
   position: sticky;
@@ -186,10 +152,6 @@ nav a {
 .page p {
   color: #666;
   line-height: 1.6;
-=======
-  padding: 15px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
->>>>>>> 7059d9936a4d3662c2ec06ce3e0d388088e365f0
 }
 
 .tickets-section {

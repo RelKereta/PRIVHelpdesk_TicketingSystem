@@ -1,107 +1,82 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import './SignIn.css';
+import eyeClosed from '../../../PRIVHelpdesk_TicketingSystem/frontend/eye00.png';
+import eyeOpen from '../../../PRIVHelpdesk_TicketingSystem/frontend/eye01.png';
 
-function SignIn() {
-  const navigate = useNavigate();
-  const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-    rememberMe: false
-  });
+const SignIn = () => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const navigate = useNavigate();
+  const { signIn } = useAuth();
 
-  const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value
-    }));
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+
+    const result = await signIn(email, password);
+    if (result.success) {
+      navigate('/dashboard'); // This should match your dashboard route in App.jsx
+    } else {
+      setError(result.error || 'Failed to sign in');
+    }
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!formData.email || !formData.password) {
-      alert('Please fill in all required fields');
-      return;
-    }
-    navigate('/dashboard');
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
   };
 
   return (
     <div className="signin-container">
-      <div className="signin-content">
-        <div className="signin-left">
-          {/* Gradient sphere background will be added via CSS */}
+      <form className="signin-form" onSubmit={handleSubmit}>
+        <h2>Sign In</h2>
+        {error && <div className="error-message">{error}</div>}
+        <div className="form-group">
+          <label htmlFor="email">Email</label>
+          <input
+            type="email"
+            id="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
         </div>
-        <div className="signin-right">
-          <div className="signin-form-container">
-            <h1>Log In</h1>
-            <p className="signin-subtitle">Welcome back! Please enter your details</p>
-            <form onSubmit={handleSubmit} className="signin-form">
-              <div className="form-group">
-                <label htmlFor="email">Email address</label>
-                <input
-                  type="email"
-                  id="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  required
-                  placeholder="Enter your email"
-                />
-              </div>
-              <div className="form-group">
-                <label htmlFor="password">
-                  Password
-                  <button
-                    type="button"
-                    className="toggle-password"
-                    onClick={() => setShowPassword(!showPassword)}
-                  >
-                    {showPassword ? 'Hide' : 'Show'}
-                  </button>
-                </label>
-                <input
-                  type={showPassword ? "text" : "password"}
-                  id="password"
-                  name="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  required
-                  placeholder="Enter your password"
-                />
-                <p className="password-hint">Use 8 or more characters with a mix of letters, numbers & symbols</p>
-              </div>
-              <div className="form-checkboxes">
-                <label className="checkbox-label">
-                  <input
-                    type="checkbox"
-                    name="terms"
-                    onChange={handleChange}
-                    required
-                  />
-                  <span>Agree to our Terms of use and Privacy Policy</span>
-                </label>
-              </div>
-              <div className="recaptcha-container">
-                {/* Add reCAPTCHA component here */}
-                <div className="recaptcha-placeholder">
-                  I'm not a robot reCAPTCHA
-                </div>
-              </div>
-              <button type="submit" className="signin-button">
-                Log In
-              </button>
-              <p className="signup-link">
-                Don't have an account? <a href="/signup">Request Sign Up</a>
-              </p>
-            </form>
+        <div className="form-group">
+          <label htmlFor="password">Password</label>
+          <div className="password-input-container">
+            <input
+              type={showPassword ? "text" : "password"}
+              id="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+            <button
+              type="button"
+              className="password-toggle-btn"
+              onClick={togglePasswordVisibility}
+              aria-label="Toggle password visibility"
+            >
+              <img 
+                src={showPassword ? eyeOpen : eyeClosed} 
+                alt="toggle password visibility"
+                className="eye-icon"
+              />
+            </button>
           </div>
         </div>
-      </div>
+        <button type="submit" className="signin-button">
+          Sign In
+        </button>
+        <div className="signup-link">
+          Don't have an account? <a href="/signup">Sign Up</a>
+        </div>
+      </form>
     </div>
   );
-}
+};
 
 export default SignIn; 

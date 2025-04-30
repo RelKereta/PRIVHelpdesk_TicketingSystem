@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
 import './Sidebar.css';
 
 function Sidebar({ onCollapse }) {
@@ -29,10 +28,10 @@ function Sidebar({ onCollapse }) {
             </div>
           </div>
           <nav className="sidebar-nav">
-            <Link to="/">Dashboard</Link>
-            <Link to="/tickets">Tickets</Link>
-            <Link to="/settings">Settings</Link>
-            <Link to="/profile">Profile</Link>
+            <a href="#dashboard">Dashboard</a>
+            <a href="#tickets">Tickets</a>
+            <a href="#settings">Settings</a>
+            <a href="#profile">Profile</a>
           </nav>
         </>
       )}

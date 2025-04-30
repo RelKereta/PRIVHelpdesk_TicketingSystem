@@ -109,43 +109,40 @@ function TicketsTable() {
               </tr>
             </thead>
             <tbody>
-              {tickets.length === 0 ? (
-                <tr className="empty-table-row">
-                  <td colSpan="9" className="empty-table-cell">
-                    No tickets to display.
-                  </td>
-                </tr>
-              ) : (
-                tickets.map(ticket => (
+              {tickets.length > 0 ? (
+                tickets.map((ticket) => (
                   <tr key={ticket.id}>
-                    <td className="checkbox-column">
+                    <td>
                       <input 
                         type="checkbox" 
                         checked={selectedTickets.includes(ticket.id)}
                         onChange={() => handleSelect(ticket.id)}
                       />
                     </td>
-                    <td className="id-column">{ticket.id}</td>
-                    <td className="subject-column subject-cell">{ticket.subject}</td>
-                    <td className="status-column">
-                      <div className="status-indicator">
-                        <span className={`status-icon ${getStatusClass(ticket.status)}`}>
-                          {getStatusIcon(ticket.status)}
-                        </span>
-                        <span>{ticket.status}</span>
-                      </div>
+                    <td>{ticket.id}</td>
+                    <td className="subject-cell">{ticket.subject}</td>
+                    <td>
+                      <span className={`status-indicator ${getStatusClass(ticket.status)}`}>
+                        {getStatusIcon(ticket.status)} {ticket.status}
+                      </span>
                     </td>
-                    <td className="priority-column" title={priorityTooltips[ticket.priority]}>
-                      {ticket.priority}
+                    <td>
+                      <span className="priority-level" title={priorityTooltips[ticket.priority]}>
+                        {ticket.priority}
+                      </span>
                     </td>
-                    <td className="type-column">{ticket.type}</td>
-                    <td className="team-column">{ticket.team}</td>
-                    <td className="contact-column">{ticket.contact}</td>
-                    <td className="resolved-column">
-                      {ticket.resolvedDate ? new Date(ticket.resolvedDate).toLocaleDateString() : '-'}
-                    </td>
+                    <td>{ticket.type}</td>
+                    <td>{ticket.team}</td>
+                    <td>{ticket.contact}</td>
+                    <td>{ticket.resolvedDate || '-'}</td>
                   </tr>
                 ))
+              ) : (
+                <tr className="empty-table-row">
+                  <td colSpan="9" className="empty-table-cell">
+                    No tickets to display. Create a new ticket to get started.
+                  </td>
+                </tr>
               )}
             </tbody>
           </table>
@@ -168,4 +165,3 @@ function TicketsTable() {
 }
 
 export default TicketsTable;
-
