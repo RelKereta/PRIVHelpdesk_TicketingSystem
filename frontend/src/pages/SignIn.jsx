@@ -28,8 +28,8 @@ function SignIn() {
       return;
     }
 
-    // For now, just navigate to the home page
-    navigate('/');
+    // For now, just navigate to the dashboard page
+    navigate('/dashboard');
   };
 
   return (
