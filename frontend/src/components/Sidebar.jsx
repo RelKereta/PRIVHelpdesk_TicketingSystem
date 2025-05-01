@@ -29,7 +29,7 @@ function Sidebar({ onCollapse }) {
             </div>
           </div>
           <nav className="sidebar-nav">
-            <Link to="/">Dashboard</Link>
+            <Link to="/dashboard">Dashboard</Link>
             <Link to="/tickets">Tickets</Link>
             <Link to="/settings">Settings</Link>
             <Link to="/profile">Profile</Link>

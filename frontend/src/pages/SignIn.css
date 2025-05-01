@@ -175,6 +175,16 @@
   text-decoration: underline;
 }
 
+.error-message {
+  color: #ff4444;
+  background-color: #ffe6e6;
+  padding: 10px;
+  border-radius: 4px;
+  margin-bottom: 20px;
+  text-align: center;
+  font-size: 14px;
+}
+
 @media (max-width: 768px) {
   .signin-content {
     flex-direction: column;

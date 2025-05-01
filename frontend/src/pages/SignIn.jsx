@@ -10,6 +10,7 @@ function SignIn() {
     rememberMe: false
   });
   const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState('');
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -19,13 +20,40 @@ function SignIn() {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setError('');
+
     if (!formData.email || !formData.password) {
-      alert('Please fill in all required fields');
+      setError('Please fill in all required fields');
       return;
     }
-    navigate('/dashboard');
+
+    try {
+      const response = await fetch('http://localhost:3000/api/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // Store user data in localStorage
+        localStorage.setItem('user', JSON.stringify(data.user));
+        // Redirect to dashboard
+        navigate('/dashboard');
+      } else {
+        setError(data.message || 'Invalid email or password');
+      }
+    } catch (error) {
+      setError('Failed to connect to the server. Please try again.');
+    }
   };
 
   return (
@@ -38,6 +66,7 @@ function SignIn() {
           <div className="signin-form-container">
             <h1>Log In</h1>
             <p className="signin-subtitle">Welcome back! Please enter your details</p>
+            {error && <div className="error-message">{error}</div>}
             <form onSubmit={handleSubmit} className="signin-form">
               <div className="form-group">
                 <label htmlFor="email">Email address</label>

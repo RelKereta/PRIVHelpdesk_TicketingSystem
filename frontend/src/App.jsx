@@ -13,8 +13,8 @@ function App() {
   return (
     <Router>
       <Routes>
-        {/* Redirect root to /signin */}
-        <Route path="/" element={<Navigate to="/signin" replace />} />
+        {/* Redirect root to /dashboard */}
+        <Route path="/" element={<Navigate to="/dashboard" replace />} />
         <Route path="/signin" element={<SignIn />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/solutions" element={<Solutions />} />
@@ -23,8 +23,8 @@ function App() {
         <Route path="/contact" element={<Contact />} />
         <Route path="/chatbot" element={<Chatbot />} />
         <Route path="/create-ticket" element={<CreateTicket />} />
-        {/* Redirect all unknown routes to /signin */}
-        <Route path="*" element={<Navigate to="/signin" replace />} />
+        {/* Redirect all unknown routes to /dashboard */}
+        <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>
     </Router>
   );

@@ -57,7 +57,7 @@ function CreateTicket() {
           team: '',
           description: '',
         });
-        navigate('/'); // Redirect to dashboard/home
+        navigate('/dashboard'); // Redirect to dashboard
       } else {
         alert('❌ Failed to create ticket'); // Show failure message
       }
