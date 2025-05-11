@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import './Chatbot.css';
 
 function Chatbot() {
@@ -9,6 +9,15 @@ function Chatbot() {
     },
   ]);
   const [inputText, setInputText] = useState('');
+  const messagesEndRef = useRef(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
 
   const handleSendMessage = () => {
     const trimmed = inputText.trim();
@@ -22,8 +31,7 @@ function Chatbot() {
       setMessages(prev => [
         ...prev,
         {
-          text:
-            "Thanks for your message. I'm here to help troubleshoot your issue. Could you provide more details about what's happening?",
+          text: "Thanks for your message. I'm here to help troubleshoot your issue. Could you provide more details about what's happening?",
           sender: 'bot',
         },
       ]);
@@ -49,17 +57,20 @@ function Chatbot() {
             {msg.text}
           </div>
         ))}
+        <div ref={messagesEndRef} />
       </div>
 
-      <div className="chatbot-input">
-        <input
-          type="text"
-          placeholder="Type your message here..."
-          value={inputText}
-          onChange={(e) => setInputText(e.target.value)}
-          onKeyDown={handleKeyDown}
-        />
-        <button onClick={handleSendMessage}>Send</button>
+      <div className="chatbot-input-container">
+        <div className="chatbot-input">
+          <input
+            type="text"
+            placeholder="Type your message here..."
+            value={inputText}
+            onChange={(e) => setInputText(e.target.value)}
+            onKeyDown={handleKeyDown}
+          />
+          <button onClick={handleSendMessage}>Send</button>
+        </div>
       </div>
     </div>
   );

@@ -9,6 +9,9 @@
 .main-content {
   flex: 1;
   padding: 20px;
+  padding-top: 90px; /* Increased to account for fixed header */
+  min-height: 100vh;
+  box-sizing: border-box;
 }
 
 .header {

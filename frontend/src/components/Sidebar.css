@@ -3,12 +3,12 @@
   position: fixed; /* Keep the sidebar fixed on the screen */
   top: 0;
   left: 0;
-  height: 100%;
+  height: 100vh; /* Use viewport height */
   width: 250px; /* Default width when expanded */
   background-color: #333;
   transition: transform 0.3s ease-in-out; /* Smooth transition */
   z-index: 1000; /* Lower than header and toggle button */
-  padding-top: 70px; /* Add padding to prevent content from going under header */
+  padding-top: 70px; /* Match header height */
 }
 
 .sidebar.collapsed {

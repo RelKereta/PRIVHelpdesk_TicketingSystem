@@ -6,8 +6,11 @@
   padding: 15px 20px;
   background-color: white;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  position: relative;
-  z-index: 1001; /* Higher than sidebar's z-index */
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1001;
 }
 
 .header-left {
@@ -76,4 +79,9 @@
 .header-nav a.active {
   font-weight: bold;
   border-bottom: 2px solid #3498db;
+}
+
+/* Add padding to the main content to account for fixed header */
+.main-content {
+  padding-top: 70px; /* Adjust this value based on your header height */
 }
