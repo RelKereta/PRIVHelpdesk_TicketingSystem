@@ -8,13 +8,13 @@ function Header({ onToggleSidebar, isSidebarExpanded }) {
   return (
     <header className={`header ${isSidebarExpanded ? 'sidebar-expanded' : ''}`}>
       <div className="header-left">
-        <div className="toggle-btn" onClick={onToggleSidebar}>
+        <button className="toggle-btn" onClick={onToggleSidebar} aria-label="Toggle sidebar">
           <div className="hamburger-icon">
             <span></span>
             <span></span>
             <span></span>
           </div>
-        </div>
+        </button>
         <Link to="/" className="logo-container">
           <div className="logo">
             <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
