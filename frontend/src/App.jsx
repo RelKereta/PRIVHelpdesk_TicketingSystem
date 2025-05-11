@@ -1,6 +1,6 @@
-import React, { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { useAuth, AuthProvider } from './context/AuthContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import Dashboard from './pages/Dashboard';
 import Solutions from './pages/Solutions';
 import Community from './pages/Community';
@@ -10,36 +10,29 @@ import Chatbot from './pages/Chatbot';
 import CreateTicket from './pages/CreateTicket';
 import SignIn from './pages/SignIn';
 import SignUp from './pages/SignUp';
+import Sidebar from './components/Sidebar';
+import Header from './components/Header';
 
-// Protected Route component
+// These must be declared inside children of AuthProvider
 const ProtectedRoute = ({ children }) => {
   const { user } = useAuth();
-  if (!user) {
-    return <Navigate to="/signin" />;
-  }
-  return children;
+  return user ? children : <Navigate to="/signin" />;
 };
 
-// Route wrapper with auth check
 const AuthenticatedRoute = ({ children }) => {
   const { user } = useAuth();
   return user ? <Navigate to="/dashboard" /> : children;
 };
 
-function App() {
+function AppContent() {
+  const [collapsed, setCollapsed] = useState(true);
+  const handleToggleSidebar = () => setCollapsed(!collapsed);
+
   useEffect(() => {
-    // Disable bfcache
-    window.addEventListener('unload', () => {
-      // This empty function prevents bfcache
-    });
-
-    // Optional: Handle page visibility changes
+    window.addEventListener('unload', () => {});
     document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState === 'hidden') {
-        // Clean up any resources if needed
-      }
+      if (document.visibilityState === 'hidden') {}
     });
-
     return () => {
       window.removeEventListener('unload', () => {});
       document.removeEventListener('visibilitychange', () => {});
@@ -47,96 +40,103 @@ function App() {
   }, []);
 
   return (
-    <AuthProvider>
-      <Router>
-        <Routes>
-          {/* Public Routes */}
-          <Route 
-            path="/signin" 
-            element={
-              <AuthenticatedRoute>
-                <SignIn />
-              </AuthenticatedRoute>
-            } 
-          />
-          <Route 
-            path="/signup" 
-            element={
-              <AuthenticatedRoute>
-                <SignUp />
-              </AuthenticatedRoute>
-            } 
-          />
-          
-          {/* Protected Routes */}
-          <Route 
-            path="/dashboard" 
-            element={
-              <ProtectedRoute>
-                <Dashboard />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/solutions" 
-            element={
-              <ProtectedRoute>
-                <Solutions />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/community" 
-            element={
-              <ProtectedRoute>
-                <Community />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/resources" 
-            element={
-              <ProtectedRoute>
-                <Resources />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/contact" 
-            element={
-              <ProtectedRoute>
-                <Contact />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/chatbot" 
-            element={
-              <ProtectedRoute>
-                <Chatbot />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/create-ticket" 
-            element={
-              <ProtectedRoute>
-                <CreateTicket />
-              </ProtectedRoute>
-            } 
-          />
+    <Router>
+      <div className="app-container">
+        <Header onToggleSidebar={handleToggleSidebar} isSidebarExpanded={!collapsed} />
+        <Sidebar collapsed={collapsed} />
+        <div className="main-content">
+          <Routes>
+            <Route
+              path="/signin"
+              element={
+                <AuthenticatedRoute>
+                  <SignIn />
+                </AuthenticatedRoute>
+              }
+            />
+            <Route
+              path="/signup"
+              element={
+                <AuthenticatedRoute>
+                  <SignUp />
+                </AuthenticatedRoute>
+              }
+            />
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/solutions"
+              element={
+                <ProtectedRoute>
+                  <Solutions />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/community"
+              element={
+                <ProtectedRoute>
+                  <Community />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/resources"
+              element={
+                <ProtectedRoute>
+                  <Resources />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/contact"
+              element={
+                <ProtectedRoute>
+                  <Contact />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/chatbot"
+              element={
+                <ProtectedRoute>
+                  <Chatbot />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/create-ticket"
+              element={
+                <ProtectedRoute>
+                  <CreateTicket />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/"
+              element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              }
+            />
+          </Routes>
+        </div>
+      </div>
+    </Router>
+  );
+}
 
-          {/* Default Route */}
-          <Route 
-            path="/" 
-            element={
-              <ProtectedRoute>
-                <Dashboard />
-              </ProtectedRoute>
-            } 
-          />
-        </Routes>
-      </Router>
+function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
     </AuthProvider>
   );
 }

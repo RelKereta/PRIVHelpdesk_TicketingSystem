@@ -1,23 +1,10 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { Link } from 'react-router-dom';
 import './Sidebar.css';
 
-function Sidebar({ onCollapse }) {
-  const [collapsed, setCollapsed] = useState(true);
-
-  const handleToggle = () => {
-    setCollapsed(!collapsed);
-    onCollapse();
-  };
-
+function Sidebar({ collapsed }) {
   return (
     <div className={`sidebar ${collapsed ? 'collapsed' : ''}`}>
-      <div className="toggle-btn" onClick={handleToggle}>
-        <div className="hamburger-icon">
-          <span></span>
-          <span></span>
-          <span></span>
-        </div>
-      </div>
       {!collapsed && (
         <>
           <div className="profile-section">
@@ -28,10 +15,10 @@ function Sidebar({ onCollapse }) {
             </div>
           </div>
           <nav className="sidebar-nav">
-            <a href="#dashboard">Dashboard</a>
-            <a href="#tickets">Tickets</a>
-            <a href="#settings">Settings</a>
-            <a href="#profile">Profile</a>
+            <Link to="/dashboard">Dashboard</Link>
+            <Link to="/tickets">Tickets</Link>
+            <Link to="/settings">Settings</Link>
+            <Link to="/profile">Profile</Link>
           </nav>
         </>
       )}

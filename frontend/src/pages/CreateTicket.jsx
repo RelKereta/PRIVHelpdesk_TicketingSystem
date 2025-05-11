@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Header from '../components/Header';
 import './CreateTicket.css';
 
 function CreateTicket() {
@@ -38,7 +37,6 @@ function CreateTicket() {
 
   return (
     <div>
-      <Header />
       <div className="create-ticket-container">
         <div className="create-ticket-header">
           <h1>Create New Ticket</h1>
