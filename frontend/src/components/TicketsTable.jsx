@@ -7,9 +7,6 @@ function TicketsTable() {
 
   return (
     <section className="tickets-container">
-      <div className="tickets-header">
-        <h1>Tickets</h1>
-      </div>
 
       <div className="action-buttons-container">
         <Link to="/chatbot" className="main-action-button chatbot-button">
