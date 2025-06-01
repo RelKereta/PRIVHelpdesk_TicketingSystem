@@ -1,15 +1,18 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTickets } from '../context/TicketContext';  // Import your context hook
 import './CreateTicket.css';
 
 function CreateTicket() {
   const navigate = useNavigate();
+  const { addTicket } = useTickets();  // Get addTicket from context
   
   const [ticketData, setTicketData] = useState({
     subject: '',
     priority: 'Medium',
     type: 'Question',
     team: '',
+    description: '',
   });
 
   const handleChange = (e) => {
@@ -22,7 +25,7 @@ function CreateTicket() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log('Ticket data submitted:', ticketData);
+
     const newTicket = {
       ...ticketData,
       id: Date.now(),
@@ -31,8 +34,10 @@ function CreateTicket() {
       resolvedDate: null,
       createdDate: new Date().toISOString()
     };
-    console.log('New ticket created:', newTicket);
-    navigate('/');
+
+    addTicket(newTicket);  // Add ticket to global state
+
+    navigate('/');  // Redirect to tickets page or wherever your tickets table is
   };
 
   return (
@@ -112,7 +117,7 @@ function CreateTicket() {
             <textarea
               id="description"
               name="description"
-              value={ticketData.description || ''}
+              value={ticketData.description}
               onChange={handleChange}
               placeholder="Please provide additional details about your issue"
             />
