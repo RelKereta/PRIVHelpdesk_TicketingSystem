@@ -2,12 +2,42 @@ import React, { createContext, useState, useContext, useEffect } from 'react';
 
 const AuthContext = createContext();
 
-// Dummy test account
-const TEST_ACCOUNT = {
-  email: 'test@example.com',
-  password: 'test123',
-  name: 'Test User'
-};
+// Test accounts with different roles
+const TEST_ACCOUNTS = [
+  {
+    id: '1',
+    email: 'admin@priv.com',
+    password: 'admin123',
+    name: 'Admin User',
+    role: 'admin',
+    department: 'IT',
+    position: 'System Administrator',
+    isActive: true,
+    permissions: ['user_management', 'ticket_management', 'system_settings', 'reports', 'audit_logs']
+  },
+  {
+    id: '2',
+    email: 'tech@priv.com',
+    password: 'tech123',
+    name: 'Tech Support',
+    role: 'technician',
+    department: 'IT Support',
+    position: 'Senior Technician',
+    isActive: true,
+    permissions: ['ticket_assignment', 'ticket_resolution', 'knowledge_base', 'team_chat']
+  },
+  {
+    id: '3',
+    email: 'user@priv.com',
+    password: 'user123',
+    name: 'Regular User',
+    role: 'user',
+    department: 'Marketing',
+    position: 'Marketing Specialist',
+    isActive: true,
+    permissions: ['ticket_creation', 'ticket_tracking', 'knowledge_base_read']
+  }
+];
 
 export const useAuth = () => {
   return useContext(AuthContext);
@@ -28,15 +58,15 @@ export const AuthProvider = ({ children }) => {
 
   const signIn = async (email, password) => {
     try {
-      // Check if credentials match test account
-      if (email === TEST_ACCOUNT.email && password === TEST_ACCOUNT.password) {
-        const user = {
-          id: '1',
-          email: TEST_ACCOUNT.email,
-          name: TEST_ACCOUNT.name
-        };
-        setUser(user);
-        localStorage.setItem('user', JSON.stringify(user));
+      // Check credentials against test accounts
+      const account = TEST_ACCOUNTS.find(acc => 
+        acc.email === email && acc.password === password && acc.isActive
+      );
+      
+      if (account) {
+        const { password: _, ...userWithoutPassword } = account;
+        setUser(userWithoutPassword);
+        localStorage.setItem('user', JSON.stringify(userWithoutPassword));
         return { success: true };
       }
       return { success: false, error: 'Invalid email or password' };
@@ -50,11 +80,28 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('user');
   };
 
+  const hasPermission = (permission) => {
+    return user?.permissions?.includes(permission) || false;
+  };
+
+  const isRole = (role) => {
+    return user?.role === role;
+  };
+
+  const isAdmin = () => isRole('admin');
+  const isTechnician = () => isRole('technician');
+  const isUser = () => isRole('user');
+
   const value = {
     user,
     loading,
     signIn,
-    signOut
+    signOut,
+    hasPermission,
+    isRole,
+    isAdmin,
+    isTechnician,
+    isUser
   };
 
   return (

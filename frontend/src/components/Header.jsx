@@ -1,9 +1,15 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import './Header.css';
 
 function Header({ onToggleSidebar }) {
   const location = useLocation();
+  const { user, signOut } = useAuth();
+
+  const handleLogout = () => {
+    signOut();
+  };
 
   return (
     <header className="header">
@@ -45,6 +51,15 @@ function Header({ onToggleSidebar }) {
           Contact
         </Link>
       </nav>
+
+      {user && (
+        <div className="header-right">
+          <span className="user-greeting">Hello, {user.name}</span>
+          <button onClick={handleLogout} className="logout-btn">
+            Logout
+          </button>
+        </div>
+      )}
     </header>
   );
 }

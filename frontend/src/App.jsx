@@ -12,15 +12,30 @@ import Chatbot from './pages/Chatbot';
 import CreateTicket from './pages/CreateTicket';
 import Settings from './pages/Settings';
 import Profile from './pages/Profile';
+import UserManagement from './pages/UserManagement';
 import SignIn from './pages/SignIn';
 import SignUp from './pages/SignUp';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
 
 // These must be declared inside children of AuthProvider
-const ProtectedRoute = ({ children }) => {
-  const { user } = useAuth();
-  return user ? children : <Navigate to="/signin" />;
+const ProtectedRoute = ({ children, requiredPermission = null }) => {
+  const { user, hasPermission } = useAuth();
+  
+  if (!user) {
+    return <Navigate to="/signin" />;
+  }
+  
+  if (requiredPermission && !hasPermission(requiredPermission)) {
+    return (
+      <div style={{ padding: '20px', textAlign: 'center' }}>
+        <h2>Access Denied</h2>
+        <p>You don't have permission to access this page.</p>
+      </div>
+    );
+  }
+  
+  return children;
 };
 
 const AuthenticatedRoute = ({ children }) => {
@@ -127,6 +142,14 @@ function AppContent() {
               element={
                 <ProtectedRoute>
                   <Profile />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/user-management"
+              element={
+                <ProtectedRoute requiredPermission="user_management">
+                  <UserManagement />
                 </ProtectedRoute>
               }
             />
