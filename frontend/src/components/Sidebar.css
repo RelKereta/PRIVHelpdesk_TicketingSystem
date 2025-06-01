@@ -9,6 +9,7 @@
   transition: transform 0.3s ease-in-out; /* Smooth transition */
   z-index: 1000; /* Lower than header and toggle button */
   padding-top: 70px; /* Match header height */
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1); /* Add subtle shadow */
 }
 
 .sidebar.collapsed {
@@ -17,6 +18,8 @@
 
 .sidebar-nav {
   padding: 20px;
+  height: calc(100% - 70px);
+  overflow-y: auto;
 }
 
 .sidebar-nav a {
@@ -24,10 +27,44 @@
   color: white;
   text-decoration: none;
   margin: 10px 0;
+  padding: 12px 15px;
+  border-radius: 6px;
+  transition: background-color 0.2s ease;
 }
 
 .sidebar-nav a:hover {
   background-color: #444;
+}
+
+.sidebar-nav a.active {
+  background-color: #007bff;
+}
+
+/* Profile section styling */
+.profile-section {
+  padding: 20px;
+  border-bottom: 1px solid #444;
+  margin-bottom: 10px;
+}
+
+.profile-pic {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background-color: #007bff;
+  margin-bottom: 10px;
+}
+
+.profile-info h3 {
+  color: white;
+  margin: 0 0 5px 0;
+  font-size: 1rem;
+}
+
+.profile-info p {
+  color: #ccc;
+  margin: 0;
+  font-size: 0.8rem;
 }
 
 .main-content {
@@ -37,7 +74,20 @@
 
 @media (max-width: 768px) {
   .sidebar {
-    width: 200px; /* Slightly smaller on mobile */
+    width: 280px; /* Slightly wider on mobile for better touch targets */
+    z-index: 1002; /* Higher z-index on mobile to overlay content */
+  }
+  
+  /* Add overlay effect on mobile when sidebar is open */
+  .sidebar:not(.collapsed)::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 280px;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: -1;
   }
   
   .main-content {

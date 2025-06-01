@@ -10,6 +10,8 @@ import Resources from './pages/Resources';
 import Contact from './pages/Contact';
 import Chatbot from './pages/Chatbot';
 import CreateTicket from './pages/CreateTicket';
+import Settings from './pages/Settings';
+import Profile from './pages/Profile';
 import SignIn from './pages/SignIn';
 import SignUp from './pages/SignUp';
 import Sidebar from './components/Sidebar';
@@ -31,22 +33,30 @@ function AppContent() {
   const handleToggleSidebar = () => setCollapsed(!collapsed);
 
   useEffect(() => {
-    window.addEventListener('unload', () => {});
-    document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState === 'hidden') {}
-    });
+    // Cleanup function for browser events
+    const handleUnload = () => {
+      // Add any cleanup logic here if needed
+    };
+    
+    const handleVisibilityChange = () => {
+      // Add visibility change logic here if needed
+    };
+
+    window.addEventListener('unload', handleUnload);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
     return () => {
-      window.removeEventListener('unload', () => {});
-      document.removeEventListener('visibilitychange', () => {});
+      window.removeEventListener('unload', handleUnload);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, []);
 
   return (
     <Router>
       <div className="app-container">
-        <Header onToggleSidebar={handleToggleSidebar} isSidebarExpanded={!collapsed} />
+        <Header onToggleSidebar={handleToggleSidebar} />
         <Sidebar collapsed={collapsed} />
-        <div className="main-content">
+        <div className={`main-content ${collapsed ? 'sidebar-collapsed' : ''}`}>
           <Routes>
             <Route
               path="/signin"
@@ -101,6 +111,22 @@ function AppContent() {
               element={
                 <ProtectedRoute>
                   <Contact />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/settings"
+              element={
+                <ProtectedRoute>
+                  <Settings />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/profile"
+              element={
+                <ProtectedRoute>
+                  <Profile />
                 </ProtectedRoute>
               }
             />
