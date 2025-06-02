@@ -61,8 +61,10 @@ jobs:
 
       - name: Run New Containers
         run: |
-          echo "PORT=3000" >> .env
-          echo "MONGO_URI=${{ secrets.MONGO_URI }}" >> .env
-          echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
-          echo "FRONTEND_URL=${{ secrets.FRONTEND_URL }}" >> .env
           docker compose up -d
+        env:
+          PORT: ${{ secrets.PORT }}
+          MONGO_URI: ${{ secrets.MONGO_URI }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          FRONTEND_URL ${{ secrets.FRONTEND_URL}}
+          
