@@ -5,7 +5,6 @@ import './Sidebar.css';
 function Sidebar({ collapsed }) {
   const user = JSON.parse(localStorage.getItem('user'));
   const isAdmin = user?.role === 'admin';
-  const isTechnician = user?.role === 'agent';
 
   const hasPermission = (permission) => {
     if (!user) return false;
@@ -75,7 +74,7 @@ function Sidebar({ collapsed }) {
         {hasPermission('ticket_management') && (
           <div className="nav-section">
             <h4>Tickets</h4>
-            <NavLink to="/tickets" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
+            <NavLink to="/all-tickets" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
               <i className="nav-icon fas fa-list"></i>
               <span>All Tickets</span>
             </NavLink>
