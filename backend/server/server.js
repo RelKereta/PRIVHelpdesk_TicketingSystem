@@ -2,14 +2,18 @@ require('dotenv').config(); // Load environment variables early
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const session = require('express-session');
+const passport = require('passport');
 const connectDB = require('./config/connect');
 const ticketRoutes = require('./routes/ticketRoutes');
 const userRoutes = require('./routes/userRoutes');
 const analyticsRoutes = require('./routes/analyticsRoutes');
 const fileRoutes = require('./routes/fileRoutes');
 const healthRoutes = require('./routes/healthRoutes');
+const authRoutes = require('./routes/auth.routes');
 const config = require('./config/config');
 const solutionRoutes = require('./routes/solutionRoutes');
+require('./config/google.config');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -19,6 +23,17 @@ app.use(cors(config.corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Session middleware
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'your-secret-key',
+  resave: false,
+  saveUninitialized: false
+}));
+
+// Initialize Passport
+app.use(passport.initialize());
+app.use(passport.session());
+
 // Routes
 app.use('/api/health', healthRoutes);
 app.use('/api/users', userRoutes);
@@ -26,6 +41,7 @@ app.use('/api/tickets', ticketRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/files', fileRoutes);
 app.use('/api/solutions', solutionRoutes);
+app.use('/api/auth', authRoutes);
 
 // Health check route
 app.get('/health', (req, res) => {
@@ -49,6 +65,7 @@ app.use((err, req, res, next) => {
     app.listen(PORT, () => {
       console.log(`🚀 Server is running on port ${PORT}`);
       console.log(`🔐 Password hashing enabled with bcryptjs`);
+      console.log(`🔑 Google OAuth enabled`);
     });
   } catch (error) {
     console.error('Failed to start server:', error);
