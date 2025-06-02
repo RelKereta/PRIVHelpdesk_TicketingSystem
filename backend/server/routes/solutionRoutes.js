@@ -1,74 +1,31 @@
 const express = require('express');
 const router = express.Router();
-
-// Mock solutions data for now
-const mockSolutions = [
-  {
-    _id: '1',
-    title: 'Password Reset Guide',
-    description: 'Step-by-step guide to reset your password for various company systems.',
-    category: 'Account Management',
-    views: 245,
-    createdAt: new Date('2024-01-15'),
-    content: 'Detailed instructions for password reset...'
-  },
-  {
-    _id: '2',
-    title: 'VPN Setup Instructions',
-    description: 'How to configure and connect to the company VPN from different devices.',
-    category: 'Network',
-    views: 189,
-    createdAt: new Date('2024-01-10'),
-    content: 'Complete VPN setup guide...'
-  },
-  {
-    _id: '3',
-    title: 'Email Configuration',
-    description: 'Setting up company email on various email clients and mobile devices.',
-    category: 'Software',
-    views: 156,
-    createdAt: new Date('2024-01-08'),
-    content: 'Email configuration steps...'
-  },
-  {
-    _id: '4',
-    title: 'Printer Troubleshooting',
-    description: 'Common printer issues and their solutions.',
-    category: 'Hardware',
-    views: 134,
-    createdAt: new Date('2024-01-05'),
-    content: 'Printer troubleshooting guide...'
-  },
-  {
-    _id: '5',
-    title: 'Software Installation Requests',
-    description: 'How to request and install approved software on company devices.',
-    category: 'Software',
-    views: 98,
-    createdAt: new Date('2024-01-03'),
-    content: 'Software installation procedure...'
-  }
-];
+const Solution = require('../models/solution');
+const { checkRole, auth } = require('../middleware/auth');
 
 // Get all solutions
-router.get('/', (req, res) => {
+router.get('/', async (req, res) => {
   try {
-    res.json(mockSolutions);
+    const solutions = await Solution.find()
+      .select('-content') // Don't send full content in list view
+      .sort({ createdAt: -1 });
+    res.json(solutions);
   } catch (error) {
     res.status(500).json({ message: 'Error fetching solutions', error: error.message });
   }
 });
 
 // Get a single solution by ID
-router.get('/:id', (req, res) => {
+router.get('/:id', async (req, res) => {
   try {
-    const solution = mockSolutions.find(s => s._id === req.params.id);
+    const solution = await Solution.findById(req.params.id);
     if (!solution) {
       return res.status(404).json({ message: 'Solution not found' });
     }
     
-    // Increment view count (in a real app, this would update the database)
+    // Increment view count
     solution.views += 1;
+    await solution.save();
     
     res.json(solution);
   } catch (error) {
@@ -76,59 +33,58 @@ router.get('/:id', (req, res) => {
   }
 });
 
-// Create a new solution (admin only)
-router.post('/', (req, res) => {
+// Create a new solution (admin/agent only)
+router.post('/', auth, checkRole(['admin', 'agent']), async (req, res) => {
   try {
-    // In a real app, you would check user permissions here
     const { title, description, category, content } = req.body;
     
-    const newSolution = {
-      _id: String(mockSolutions.length + 1),
+    const newSolution = new Solution({
       title,
       description,
       category,
       content,
-      views: 0,
-      createdAt: new Date()
-    };
+      createdBy: req.user._id
+    });
     
-    mockSolutions.push(newSolution);
+    await newSolution.save();
     res.status(201).json(newSolution);
   } catch (error) {
     res.status(500).json({ message: 'Error creating solution', error: error.message });
   }
 });
 
-// Update a solution (admin only)
-router.put('/:id', (req, res) => {
+// Update a solution (admin/agent only)
+router.put('/:id', auth, checkRole(['admin', 'agent']), async (req, res) => {
   try {
-    const solutionIndex = mockSolutions.findIndex(s => s._id === req.params.id);
-    if (solutionIndex === -1) {
+    const solution = await Solution.findById(req.params.id);
+    if (!solution) {
       return res.status(404).json({ message: 'Solution not found' });
     }
     
-    const updatedSolution = {
-      ...mockSolutions[solutionIndex],
-      ...req.body,
-      updatedAt: new Date()
-    };
+    const updatedSolution = await Solution.findByIdAndUpdate(
+      req.params.id,
+      {
+        ...req.body,
+        lastUpdatedBy: req.user._id
+      },
+      { new: true }
+    );
     
-    mockSolutions[solutionIndex] = updatedSolution;
     res.json(updatedSolution);
   } catch (error) {
     res.status(500).json({ message: 'Error updating solution', error: error.message });
   }
 });
 
-// Delete a solution (admin only)
-router.delete('/:id', (req, res) => {
+// Delete a solution (admin/agent only)
+router.delete('/:id', auth, checkRole(['admin', 'agent']), async (req, res) => {
   try {
-    const solutionIndex = mockSolutions.findIndex(s => s._id === req.params.id);
-    if (solutionIndex === -1) {
+    const solution = await Solution.findById(req.params.id);
+    if (!solution) {
       return res.status(404).json({ message: 'Solution not found' });
     }
     
-    mockSolutions.splice(solutionIndex, 1);
+    await solution.deleteOne();
     res.json({ message: 'Solution deleted successfully' });
   } catch (error) {
     res.status(500).json({ message: 'Error deleting solution', error: error.message });

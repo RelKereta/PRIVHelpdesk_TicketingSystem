@@ -26,17 +26,23 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+    // Log the error details for debugging
     console.error('API Error:', {
       status: error.response?.status,
       data: error.response?.data,
-      message: error.message
+      message: error.message,
+      url: error.config?.url
     });
 
-    if (error.response?.status === 401) {
-      // Handle unauthorized access
+    // Handle authentication and authorization errors
+    if (error.response?.status === 401 || error.response?.status === 403) {
+      console.log('Authentication/Authorization error detected, redirecting to signin...');
       localStorage.removeItem('user');
       window.location.href = '/signin';
+      return Promise.reject(error);
     }
+    
+    // Return the error for other types of errors
     return Promise.reject(error);
   }
 );

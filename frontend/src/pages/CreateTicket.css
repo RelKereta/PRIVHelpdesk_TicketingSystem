@@ -1,15 +1,20 @@
 .create-ticket-page {
   max-width: 800px;
   margin: 0 auto;
-  padding: 20px;
+  padding: 40px 20px;
   width: 100%;
   box-sizing: border-box;
   transition: all 0.3s ease-in-out;
+  /* Ensure proper centering */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .create-ticket-header {
   text-align: center;
   margin-bottom: 30px;
+  width: 100%;
 }
 
 .create-ticket-header h1 {
@@ -30,10 +35,13 @@
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   overflow: hidden;
+  width: 100%;
+  /* Ensure form takes full width of container */
+  max-width: 100%;
 }
 
 .form-section {
-  padding: 24px;
+  padding: 32px 28px; /* Increased horizontal padding */
   border-bottom: 1px solid #e9ecef;
 }
 
@@ -77,14 +85,12 @@
   font-size: 0.9rem;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
   font-family: inherit;
+  width: 100%;
+  box-sizing: border-box;
   background: white;
+
 }
 
-.form-input:focus, .form-textarea:focus, .form-select:focus {
-  outline: none;
-  border-color: #007bff;
-  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
-}
 
 .form-textarea {
   resize: vertical;
@@ -134,6 +140,8 @@
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s ease;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .file-input:hover {
@@ -207,7 +215,7 @@
   display: flex;
   justify-content: flex-end;
   gap: 15px;
-  padding: 24px;
+  padding: 32px 28px; /* Match the increased section padding */
   background: #f8f9fa;
   border-top: 1px solid #e9ecef;
 }
@@ -268,7 +276,7 @@
 /* Responsive Design */
 @media (max-width: 768px) {
   .create-ticket-page {
-    padding: 15px;
+    padding: 20px 15px; /* Better mobile padding */
   }
 
   .create-ticket-header h1 {
@@ -276,7 +284,7 @@
   }
 
   .form-section {
-    padding: 20px;
+    padding: 24px 20px; /* Adjusted mobile padding */
   }
 
   .form-row {
@@ -286,7 +294,7 @@
 
   .form-actions {
     flex-direction: column;
-    padding: 20px;
+    padding: 24px 20px; /* Match section padding */
   }
 
   .cancel-button, .submit-button {
@@ -316,12 +324,16 @@
 }
 
 @media (max-width: 480px) {
+  .create-ticket-page {
+    padding: 15px 10px; /* Tighter padding for small screens */
+  }
+
   .create-ticket-header h1 {
     font-size: 1.8rem;
   }
 
   .form-section {
-    padding: 16px;
+    padding: 20px 16px; /* Consistent small screen padding */
   }
 
   .form-section h3 {
@@ -331,4 +343,8 @@
   .form-input, .form-textarea, .form-select {
     padding: 10px 12px;
   }
-} 
+
+  .form-actions {
+    padding: 20px 16px; /* Match section padding */
+  }
+}
