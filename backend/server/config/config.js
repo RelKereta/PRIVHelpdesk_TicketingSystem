@@ -21,11 +21,11 @@ module.exports = {
     'text/plain'
   ],
 
-  // CORS configuration
+  // CORS configuration - allow all origins during development
   corsOptions: {
-    origin: process.env.FRONTEND_URL || 'http://localhost:5173',
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-    allowedHeaders: ['Content-Type', 'X-User-Id'],
+    origin: true, // Allow all origins
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'X-User-Id', 'Authorization'],
     credentials: true
   }
 }; 

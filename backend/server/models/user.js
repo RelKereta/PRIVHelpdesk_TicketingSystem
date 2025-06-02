@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
 
 const userSchema = new mongoose.Schema({
   username: {
@@ -98,6 +99,21 @@ const userSchema = new mongoose.Schema({
   timestamps: true
 });
 
+// Pre-save middleware to hash password
+userSchema.pre('save', async function(next) {
+  // Only hash the password if it has been modified (or is new)
+  if (!this.isModified('password')) return next();
+  
+  try {
+    // Hash password with salt rounds
+    const salt = await bcrypt.genSalt(10);
+    this.password = await bcrypt.hash(this.password, salt);
+    next();
+  } catch (error) {
+    next(error);
+  }
+});
+
 // Helper methods
 userSchema.methods.hasPermission = function(permission) {
   const permissions = this.getPermissions();
@@ -188,9 +204,13 @@ userSchema.methods.updateTicketStatus = function(ticketId, newStatus) {
   return this.save();
 };
 
-// Method to check password (since we're not using hashing for simplicity)
-userSchema.methods.comparePassword = function(candidatePassword) {
-  return this.password === candidatePassword;
+// Method to compare password with hashed password
+userSchema.methods.comparePassword = async function(candidatePassword) {
+  try {
+    return await bcrypt.compare(candidatePassword, this.password);
+  } catch (error) {
+    throw error;
+  }
 };
 
 module.exports = mongoose.model('User', userSchema); 

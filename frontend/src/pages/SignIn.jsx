@@ -16,14 +16,7 @@ const SignIn = () => {
     // Check if user is already logged in
     const user = JSON.parse(localStorage.getItem('user'));
     if (user) {
-      const role = user.role.toLowerCase();
-      if (role === 'admin') {
-        navigate('/admin-dashboard');
-      } else if (role === 'agent') {
-        navigate('/technician-dashboard');
-      } else {
-        navigate('/dashboard');
-      }
+      navigate('/dashboard');
     }
   }, [navigate]);
 
@@ -36,14 +29,7 @@ const SignIn = () => {
       // Only store the complete user object
       localStorage.setItem('user', JSON.stringify(response.user));
       
-      const role = response.user.role.toLowerCase();
-      if (role === 'admin') {
-        navigate('/admin-dashboard');
-      } else if (role === 'agent') {
-        navigate('/technician-dashboard');
-      } else {
-        navigate('/dashboard');
-      }
+      navigate('/dashboard');
     } catch (err) {
       console.error('Sign in error:', err);
       setError(err.response?.data?.message || 'Failed to sign in');

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import TicketsTable from '../components/TicketsTable.jsx';
 import ErrorBoundary from '../components/ErrorBoundary.jsx';
 import './Dashboard.css';
-import { ticketService, authService } from '../services/api';
+import { ticketService } from '../services/api';
 
 function Dashboard() {
   const [user, setUser] = useState(null);
@@ -20,16 +20,40 @@ function Dashboard() {
         setError('');
 
         // Check if user is logged in first
-        const userData = await authService.getCurrentUser();
-        if (!userData || !userData._id) {
-          // Redirect to sign-in if no valid user found
+        const storedUser = localStorage.getItem('user');
+        console.log('Stored user data:', storedUser);
+        
+        if (!storedUser) {
+          console.log('No user data in localStorage, redirecting to signin');
           window.location.href = '/signin';
           return;
         }
+
+        let userData;
+        try {
+          userData = JSON.parse(storedUser);
+          console.log('Parsed user data:', userData);
+        } catch (parseError) {
+          console.error('Error parsing user data:', parseError);
+          localStorage.removeItem('user');
+          window.location.href = '/signin';
+          return;
+        }
+
+        if (!userData || !userData._id) {
+          console.log('Invalid user data, redirecting to signin');
+          localStorage.removeItem('user');
+          window.location.href = '/signin';
+          return;
+        }
+
         setUser(userData);
+        console.log('User set successfully:', userData);
         
         // Fetch tickets based on user role
+        console.log('Fetching tickets...');
         const ticketsData = await ticketService.getTickets();
+        console.log('Tickets fetched successfully:', ticketsData);
         
         // Calculate stats from tickets data
         const calculatedStats = {
@@ -45,6 +69,7 @@ function Dashboard() {
           critical: ticketsData.filter(t => t.priority === 'Critical').length,
           pendingApproval: ticketsData.filter(t => t.approvalStatus === 'Pending').length
         };
+        console.log('Calculated stats:', calculatedStats);
         setStats(calculatedStats);
         
         // Filter overdue tickets
@@ -75,15 +100,21 @@ function Dashboard() {
         }
       } catch (err) {
         console.error('Dashboard data fetch error:', err);
+        console.error('Error details:', {
+          message: err.message,
+          response: err.response?.data,
+          status: err.response?.status
+        });
         
         // Handle authentication errors
         if (err.response?.status === 401 || err.message === 'No user found') {
+          console.log('Authentication error, clearing localStorage and redirecting');
           localStorage.removeItem('user');
           window.location.href = '/signin';
           return;
         }
         
-        setError(err.response?.data?.message || 'Failed to fetch dashboard data');
+        setError(`Failed to fetch dashboard data: ${err.response?.data?.message || err.message}`);
       } finally {
         setLoading(false);
       }
@@ -136,8 +167,20 @@ function Dashboard() {
 
   if (error) {
     return (
-      <div className="error-message">
-        {error}
+      <div className="dashboard-page">
+        <div className="error-message">
+          <h2>Dashboard Error</h2>
+          <p>{error}</p>
+          <div style={{ marginTop: '20px' }}>
+            <button onClick={() => window.location.reload()}>Retry</button>
+            <button onClick={() => {
+              localStorage.removeItem('user');
+              window.location.href = '/signin';
+            }} style={{ marginLeft: '10px' }}>
+              Sign In Again
+            </button>
+          </div>
+        </div>
       </div>
     );
   }
