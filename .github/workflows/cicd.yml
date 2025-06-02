@@ -23,13 +23,13 @@ jobs:
 
       - name: Build and Push Backend Image
         run: |
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/priv-helpdesk-backend:latest ./backend/server
-          docker push ${{ secrets.DOCKER_USERNAME }}/priv-helpdesk-backend:latest
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/PRIV-backend:latest ./backend/server
+          docker push ${{ secrets.DOCKER_USERNAME }}/PRIV-backend:latest
 
       - name: Build and Push Frontend Image
         run: |
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/priv-helpdesk-frontend:latest ./frontend
-          docker push ${{ secrets.DOCKER_USERNAME }}/priv-helpdesk-frontend:latest
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/PRIV-frontend:latest ./frontend
+          docker push ${{ secrets.DOCKER_USERNAME }}/PRIV-frontend:latest
 
   continuous-deployment:
     needs: continuous-integration
@@ -49,10 +49,10 @@ jobs:
         run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Pull Latest Backend Image
-        run: docker pull ${{ secrets.DOCKER_USERNAME }}/priv-helpdesk-backend:latest
+        run: docker pull ${{ secrets.DOCKER_USERNAME }}/PRIV-backend:latest
 
       - name: Pull Latest Frontend Image
-        run: docker pull ${{ secrets.DOCKER_USERNAME }}/priv-helpdesk-frontend:latest
+        run: docker pull ${{ secrets.DOCKER_USERNAME }}/PRIV-frontend:latest
 
       - name: Stop and Remove Old Containers
         run: |
@@ -61,9 +61,7 @@ jobs:
 
       - name: Run New Containers
         run: |
+          echo "PORT=3000" >> .env
+          echo "MONGO_URI=${{ secrets.MONGO_URI }}" >> .env
+          echo "REFRESH_TOKEN_SECRET=${{ secrets.REFRESH_TOKEN_SECRET }}" >> .env
           docker compose up -d
-        env:
-          PORT: ${{ secrets.PORT }}
-          MONGO_URI: ${{ secrets.MONGO_URI }}
-          JWT_SECRET: ${{ secrets.JWT_SECRET }}
-          FRONTEND_URL: ${{ secrets.FRONTEND_URL }}

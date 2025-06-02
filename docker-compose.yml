@@ -5,9 +5,9 @@ services:
     image: marputtt/PRIV-backend:latest
     restart: always
     environment:
-      PORT: ${3000}
+      PORT: 3000
       CONNECTION_URL: ${MONGO_URI}
-      REFRESH_TOKEN_SECRET: ${PRIV_Helpdesk_2024_Secure_JWT_Secret_Key_8x9y2z1w4v3u6t7s}
+      REFRESH_TOKEN_SECRET: ${REFRESH_TOKEN_SECRET}
     ports:
       - "3014:3014"
 
