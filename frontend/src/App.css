@@ -4,28 +4,29 @@
   display: flex;
   min-height: 100vh;
   background-color: #f5f7fa;
+  position: relative;
 }
 
 .dashboard {
   display: flex;
   min-height: 100vh;
-  background-color: #f5f7fa
+  background-color: #f5f7fa;
 }
 
 .main-content {
   flex: 1;
   padding: 20px;
   padding-top: 90px; /* Increased to account for fixed header */
-  padding-left: 270px; /* Default padding when sidebar is expanded (250px sidebar + 20px margin) */
+  margin-left: 250px; /* Default margin when sidebar is expanded */
   min-height: 100vh;
   box-sizing: border-box;
-  transition: padding-left 0.3s ease-in-out, margin-left 0.3s ease-in-out; /* Smooth transition */
-  width: 100%;
+  transition: margin-left 0.3s ease-in-out;
+  width: calc(100% - 250px); /* Adjust width based on sidebar */
 }
 
 .main-content.sidebar-collapsed {
-  padding-left: 20px; /* Equal padding on both sides when sidebar is collapsed */
-  margin-left: 0; /* Reset any margin when collapsed */
+  margin-left: 70px; /* Width of collapsed sidebar */
+  width: calc(100% - 70px);
 }
 
 /* Ensure all page containers inherit the proper spacing */
@@ -65,12 +66,15 @@
 
 @media (max-width: 768px) {
   .main-content {
-    padding-left: 20px; /* Always centered on mobile */
+    margin-left: 0;
+    width: 100%;
+    padding-left: 20px;
     padding-right: 20px;
   }
   
   .main-content.sidebar-collapsed {
-    padding-left: 20px;
+    margin-left: 0;
+    width: 100%;
   }
 }
 
