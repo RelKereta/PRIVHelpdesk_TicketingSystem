@@ -169,82 +169,154 @@
 .priority-chart {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
 }
 
 .priority-bar {
-  display: grid;
-  grid-template-columns: 120px 1fr 60px;
-  gap: 12px;
+  display: flex;
   align-items: center;
+  gap: 12px;
 }
 
 .priority-label {
   display: flex;
   align-items: center;
   gap: 8px;
+  min-width: 100px;
+  flex-shrink: 0;
+}
+
+.priority-name {
   font-size: 14px;
   font-weight: 500;
+  color: #4a5568;
 }
 
 .priority-indicator {
   width: 12px;
   height: 12px;
   border-radius: 50%;
+  flex-shrink: 0;
 }
 
-.priority-critical { background: #dc3545; }
-.priority-high { background: #fd7e14; }
-.priority-medium { background: #ffc107; }
-.priority-low { background: #28a745; }
-
 .priority-bar-container {
-  background: #e2e8f0;
-  height: 20px;
-  border-radius: 10px;
+  flex: 1;
+  background: #f1f3f4;
+  height: 28px;
+  border-radius: 14px;
   overflow: hidden;
+  margin: 0 12px;
+  border: 1px solid #e2e8f0;
 }
 
 .priority-bar-fill {
   height: 100%;
-  border-radius: 10px;
-  transition: width 0.3s ease;
+  border-radius: 14px;
+  transition: width 0.6s ease;
+  min-width: 2px;
 }
 
 .priority-count {
-  text-align: right;
   font-weight: 600;
-  color: #4a5568;
+  color: #2d3748;
+  font-size: 14px;
+  min-width: 30px;
+  text-align: right;
 }
+
+/* Priority Colors for bars - with !important to ensure they override */
+.priority-bar-fill.priority-critical { 
+  background: #dc3545 !important; 
+}
+.priority-bar-fill.priority-high { 
+  background: #ff8c00 !important; 
+}
+.priority-bar-fill.priority-medium { 
+  background: #ffc107 !important; 
+}
+.priority-bar-fill.priority-low { 
+  background: #28a745 !important; 
+}
+
+/* Priority indicator colors */
+.priority-critical { background: #dc3545; }
+.priority-high { background: #ff8c00; }
+.priority-medium { background: #ffc107; }
+.priority-low { background: #28a745; }
 
 /* Status Chart */
 .status-chart {
   display: flex;
-  gap: 20px;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: 16px;
 }
 
-.status-item {
+.status-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.status-label {
   display: flex;
   align-items: center;
   gap: 8px;
+  min-width: 120px;
+  flex-shrink: 0;
+}
+
+.status-name {
   font-size: 14px;
   font-weight: 500;
-  padding: 8px 12px;
-  background: #f7fafc;
-  border-radius: 6px;
-  border: 1px solid #e2e8f0;
+  color: #4a5568;
 }
 
 .status-indicator {
   width: 12px;
   height: 12px;
   border-radius: 50%;
+  flex-shrink: 0;
 }
 
-.status-open { background: #dc3545; }
+.status-bar-container {
+  flex: 1;
+  background: #f1f3f4;
+  height: 28px;
+  border-radius: 14px;
+  overflow: hidden;
+  margin: 0 12px;
+}
+
+.status-bar-fill {
+  height: 100%;
+  border-radius: 14px;
+  transition: width 0.6s ease;
+  min-width: 2px;
+}
+
+.status-count {
+  font-weight: 600;
+  color: #2d3748;
+  font-size: 14px;
+  min-width: 30px;
+  text-align: right;
+}
+
+/* Status Colors for bars */
+.status-bar-fill.status-open { background: #0891b2; }
+.status-bar-fill.status-progress { background: #007bff; }
+.status-bar-fill.status-resolved { background: #28a745; }
+
+/* Status indicator colors */
+.status-open { background: #0891b2; }
 .status-progress { background: #007bff; }
 .status-resolved { background: #28a745; }
+
+/* Priority colors when using status-bar structure */
+.priority-bar-fill.priority-critical { background: #dc3545 !important; }
+.priority-bar-fill.priority-high { background: #ff8c00 !important; }
+.priority-bar-fill.priority-medium { background: #ffc107 !important; }
+.priority-bar-fill.priority-low { background: #28a745 !important; }
 
 /* Agent Performance Table */
 .agent-performance-table {
@@ -328,12 +400,7 @@
     grid-template-columns: 1fr;
   }
   
-  .priority-bar {
-    grid-template-columns: 100px 1fr 50px;
-    gap: 8px;
-  }
-  
-  .status-chart {
+  .priority-chart, .status-chart {
     flex-direction: column;
     gap: 10px;
   }

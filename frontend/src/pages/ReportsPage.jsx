@@ -252,44 +252,67 @@ function ReportsPage() {
           {/* Priority Breakdown */}
           <div className="chart-section">
             <h2>Priority Breakdown</h2>
-            <div className="priority-chart">
-              {Object.entries(reportData.priorityBreakdown).map(([priority, count]) => (
-                <div key={priority} className="priority-bar">
-                  <div className="priority-label">
-                    <span className={`priority-indicator priority-${priority.toLowerCase()}`}></span>
-                    {priority}
+            <div className="status-chart">
+              {[
+                ['Critical', reportData.priorityBreakdown.Critical, 'critical'],
+                ['High', reportData.priorityBreakdown.High, 'high'],
+                ['Medium', reportData.priorityBreakdown.Medium, 'medium'],
+                ['Low', reportData.priorityBreakdown.Low, 'low']
+              ].map(([priority, count, priorityKey]) => {
+                const maxCount = Math.max(
+                  reportData.priorityBreakdown.Critical,
+                  reportData.priorityBreakdown.High,
+                  reportData.priorityBreakdown.Medium,
+                  reportData.priorityBreakdown.Low
+                );
+                const percentage = maxCount > 0 ? (count / maxCount) * 100 : 0;
+                console.log(`Priority ${priority}: count=${count}, maxCount=${maxCount}, percentage=${percentage}%`);
+                return (
+                  <div key={priority} className="status-bar">
+                    <div className="status-label">
+                      <span className={`priority-indicator priority-${priorityKey}`}></span>
+                      <span className="status-name">{priority}</span>
+                    </div>
+                    <div className="status-bar-container">
+                      <div 
+                        className={`priority-bar-fill priority-${priorityKey}`}
+                        style={{ width: `${percentage}%` }}
+                      ></div>
+                    </div>
+                    <div className="status-count">{count}</div>
                   </div>
-                  <div className="priority-bar-container">
-                    <div 
-                      className="priority-bar-fill"
-                      style={{ 
-                        width: `${reportData.totalTickets > 0 ? (count / reportData.totalTickets) * 100 : 0}%`,
-                        backgroundColor: getPriorityColor(priority)
-                      }}
-                    ></div>
-                  </div>
-                  <div className="priority-count">{count}</div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
 
-          {/* Status Breakdown */}
+          {/* Status Distribution */}
           <div className="chart-section">
             <h2>Status Distribution</h2>
             <div className="status-chart">
-              <div className="status-item">
-                <span className="status-indicator status-open"></span>
-                <span>Open: {reportData.openTickets}</span>
-              </div>
-              <div className="status-item">
-                <span className="status-indicator status-progress"></span>
-                <span>In Progress: {reportData.inProgressTickets}</span>
-              </div>
-              <div className="status-item">
-                <span className="status-indicator status-resolved"></span>
-                <span>Resolved: {reportData.resolvedTickets}</span>
-              </div>
+              {[
+                ['Open', reportData.openTickets, 'open'],
+                ['In Progress', reportData.inProgressTickets, 'progress'],
+                ['Resolved', reportData.resolvedTickets, 'resolved']
+              ].map(([status, count, statusKey]) => {
+                const maxCount = Math.max(reportData.openTickets, reportData.inProgressTickets, reportData.resolvedTickets);
+                const percentage = maxCount > 0 ? (count / maxCount) * 100 : 0;
+                return (
+                  <div key={status} className="status-bar">
+                    <div className="status-label">
+                      <span className={`status-indicator status-${statusKey}`}></span>
+                      <span className="status-name">{status}</span>
+                    </div>
+                    <div className="status-bar-container">
+                      <div 
+                        className={`status-bar-fill status-${statusKey}`}
+                        style={{ width: `${percentage}%` }}
+                      ></div>
+                    </div>
+                    <div className="status-count">{count}</div>
+                  </div>
+                );
+              })}
             </div>
           </div>
 
@@ -327,16 +350,6 @@ function ReportsPage() {
       )}
     </div>
   );
-
-  function getPriorityColor(priority) {
-    switch (priority) {
-      case 'Critical': return '#dc3545';
-      case 'High': return '#fd7e14';
-      case 'Medium': return '#ffc107';
-      case 'Low': return '#28a745';
-      default: return '#6c757d';
-    }
-  }
 }
 
 export default ReportsPage; 
