@@ -10,6 +10,7 @@ const SignUp = () => {
     email: '',
     password: '',
     confirmPassword: '',
+    role: 'User', // Default role
   });
   const [error, setError] = useState('');
   const navigate = useNavigate();
@@ -30,6 +31,10 @@ const SignUp = () => {
     }
     if (formData.password.length < 6) {
       setError('Password must be at least 6 characters long');
+      return false;
+    }
+    if (!formData.role) {
+      setError('Please select a role');
       return false;
     }
     return true;
@@ -90,6 +95,20 @@ const SignUp = () => {
             onChange={handleChange}
             required
           />
+        </div>
+        <div className="form-group">
+          <label htmlFor="role">Role</label>
+          <select
+            id="role"
+            name="role"
+            value={formData.role}
+            onChange={handleChange}
+            required
+          >
+            <option value="User">User</option>
+            <option value="IT Technician">IT Technician</option>
+            <option value="Admin">Admin</option>
+          </select>
         </div>
         <div className="form-group">
           <label htmlFor="password">Password</label>
