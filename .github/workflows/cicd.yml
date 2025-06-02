@@ -23,13 +23,13 @@ jobs:
 
       - name: Build and Push Backend Image
         run: |
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/todolist-backend:latest ./server
-          docker push ${{ secrets.DOCKER_USERNAME }}/todolist-backend:latest
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/priv-helpdesk-backend:latest ./backend/server
+          docker push ${{ secrets.DOCKER_USERNAME }}/priv-helpdesk-backend:latest
 
       - name: Build and Push Frontend Image
         run: |
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/todolist-frontend:latest ./client
-          docker push ${{ secrets.DOCKER_USERNAME }}/todolist-frontend:latest
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/priv-helpdesk-frontend:latest ./frontend
+          docker push ${{ secrets.DOCKER_USERNAME }}/priv-helpdesk-frontend:latest
 
   continuous-deployment:
     needs: continuous-integration
@@ -46,10 +46,10 @@ jobs:
           echo "export DOCKER_HOST=unix://$XDG_RUNTIME_DIR/docker.sock" >> $GITHUB_ENV
 
       - name: Pull Latest Backend Image
-        run: docker pull ${{ secrets.DOCKER_USERNAME }}/todolist-backend:latest
+        run: docker pull ${{ secrets.DOCKER_USERNAME }}/priv-helpdesk-backend:latest
 
       - name: Pull Latest Frontend Image
-        run: docker pull ${{ secrets.DOCKER_USERNAME }}/todolist-frontend:latest
+        run: docker pull ${{ secrets.DOCKER_USERNAME }}/priv-helpdesk-frontend:latest
 
       - name: Stop and Remove Old Containers
         run: |
@@ -61,7 +61,6 @@ jobs:
           docker compose up -d
         env:
           PORT: ${{ secrets.PORT }}
-          CONNECTION_URL: ${{ secrets.CONNECTION_URL }}
-          REFRESH_TOKEN_SECRET: ${{ secrets.REFRESH_TOKEN_SECRET }}
-          EMAIL_USER: ${{ secrets.EMAIL_USER }}
-          EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
+          MONGO_URI: ${{ secrets.MONGO_URI }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          FRONTEND_URL: ${{ secrets.FRONTEND_URL }}
