@@ -73,6 +73,7 @@ const UserManagement = () => {
           <tr>
             <th>Username</th>
             <th>Email</th>
+            <th>Phone</th>
             <th>Role</th>
             <th>Department</th>
             <th>Actions</th>
@@ -83,6 +84,7 @@ const UserManagement = () => {
             <tr key={userItem._id}>
               <td>{userItem.username}</td>
               <td>{userItem.email}</td>
+              <td>{userItem.phone || 'N/A'}</td>
               <td>
                 <span className={`role-badge ${userItem.role}`}>
                   {userItem.role}
