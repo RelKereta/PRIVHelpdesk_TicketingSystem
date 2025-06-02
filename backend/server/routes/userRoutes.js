@@ -13,6 +13,9 @@ router.put('/profile', auth, userController.updateProfile);
 
 // Admin only routes
 router.get('/', auth, checkRole(['admin']), userController.getAllUsers);
+router.get('/:id', auth, checkRole(['admin']), userController.getUserById);
+router.put('/:id', auth, checkRole(['admin']), userController.updateUser);
+router.delete('/:id', auth, checkRole(['admin']), userController.deleteUser);
 router.put('/:userId/role', auth, checkRole(['admin']), userController.updateUserRole);
 
 module.exports = router; 

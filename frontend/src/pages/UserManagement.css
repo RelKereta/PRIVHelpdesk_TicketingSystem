@@ -131,10 +131,26 @@
   border-radius: 12px;
   font-size: 0.75rem;
   font-weight: 600;
-  color: white;
   text-align: center;
   min-width: 70px;
   display: inline-block;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.role-badge.admin {
+  background-color: #dc3545;
+  color: white;
+}
+
+.role-badge.agent {
+  background-color: #28a745;
+  color: white;
+}
+
+.role-badge.user {
+  background-color: #6c757d;
+  color: white;
 }
 
 .status-badge {

@@ -11,6 +11,7 @@ import CreateTicket from './pages/CreateTicket';
 import Settings from './pages/Settings';
 import Profile from './pages/Profile';
 import UserManagement from './pages/UserManagement';
+import UserEdit from './pages/UserEdit';
 import SignIn from './pages/SignIn';
 import SignUp from './pages/SignUp';
 import Sidebar from './components/Sidebar';
@@ -71,6 +72,7 @@ function AppContent() {
           <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
           <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
           <Route path="/user-management" element={<ProtectedRoute requiredPermission="user_management"><UserManagement /></ProtectedRoute>} />
+          <Route path="/users/:id/edit" element={<ProtectedRoute requiredPermission="admin"><UserEdit /></ProtectedRoute>} />
           <Route path="/chatbot" element={<ProtectedRoute><Chatbot /></ProtectedRoute>} />
           <Route path="/create-ticket" element={<ProtectedRoute><CreateTicket /></ProtectedRoute>} />
           <Route path="/tickets/:id/edit" element={<ProtectedRoute requiredPermission="admin"><TicketEdit /></ProtectedRoute>} />

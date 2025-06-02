@@ -76,40 +76,55 @@ const createTicket = async (req, res) => {
 // Get all tickets with role-based filtering
 const getTickets = async (req, res) => {
   try {
+    console.log('GET /api/tickets called');
     const userId = req.headers['x-user-id'];
+    console.log('User ID from headers:', userId);
     
     // Check if user ID is provided
     if (!userId) {
+      console.log('No user ID provided');
       return res.status(401).json({ 
         message: 'Authentication required. Please log in to access tickets.',
         code: 'NO_USER_ID'
       });
     }
 
+    console.log('Looking up user with ID:', userId);
     const user = await User.findById(userId);
     
     if (!user) {
+      console.log('User not found for ID:', userId);
       return res.status(404).json({ 
         message: 'User not found. Please log in again.',
         code: 'USER_NOT_FOUND'
       });
     }
 
+    console.log('User found:', { id: user._id, username: user.username, role: user.role });
+
     let query = {};
     
     // If user is not admin or agent, only show their own tickets
     if (user.role !== 'admin' && user.role !== 'agent') {
       query['requester.userId'] = userId;
+      console.log('User is regular user, filtering by requester.userId:', userId);
+    } else {
+      console.log('User is admin/agent, showing all tickets');
     }
 
-    const tickets = await Ticket.find(query)
-      .sort({ createdAt: -1 })
-      .populate('requester.userId', 'username email department')
-      .populate('assignedTo', 'username email department');
-
+    console.log('Executing ticket query:', query);
+    
+    // Simplified query without populate for now
+    const tickets = await Ticket.find(query).sort({ createdAt: -1 });
+    
+    console.log('Tickets found:', tickets.length);
     res.json(tickets);
   } catch (error) {
-    console.error('Error fetching tickets:', error);
+    console.error('Error fetching tickets:', {
+      message: error.message,
+      stack: error.stack,
+      name: error.name
+    });
     res.status(500).json({ 
       message: 'Error fetching tickets', 
       error: error.message,

@@ -100,6 +100,94 @@ exports.getAllUsers = async (req, res) => {
   }
 };
 
+// Get user by ID (admin only)
+exports.getUserById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const user = await User.findById(id).select('-password');
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.json(user);
+  } catch (error) {
+    console.error('Get user by ID error:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Update user (admin only)
+exports.updateUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updates = req.body;
+
+    // Remove password from updates for security
+    delete updates.password;
+
+    const user = await User.findById(id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Check if username/email already exists (if being updated)
+    if (updates.username && updates.username !== user.username) {
+      const existingUser = await User.findOne({ username: updates.username });
+      if (existingUser) {
+        return res.status(400).json({ message: 'Username already exists' });
+      }
+    }
+
+    if (updates.email && updates.email !== user.email) {
+      const existingUser = await User.findOne({ email: updates.email });
+      if (existingUser) {
+        return res.status(400).json({ message: 'Email already exists' });
+      }
+    }
+
+    // Update user fields
+    Object.keys(updates).forEach(key => {
+      user[key] = updates[key];
+    });
+
+    await user.save();
+
+    // Return user without password
+    const updatedUser = await User.findById(id).select('-password');
+    res.json(updatedUser);
+  } catch (error) {
+    console.error('Update user error:', error);
+    res.status(400).json({ message: error.message });
+  }
+};
+
+// Delete user (admin only)
+exports.deleteUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const user = await User.findById(id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Prevent deleting the last admin
+    if (user.role === 'admin') {
+      const adminCount = await User.countDocuments({ role: 'admin' });
+      if (adminCount <= 1) {
+        return res.status(400).json({ message: 'Cannot delete the last admin user' });
+      }
+    }
+
+    await User.findByIdAndDelete(id);
+    res.json({ message: 'User deleted successfully' });
+  } catch (error) {
+    console.error('Delete user error:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
 // Update user role (admin only)
 exports.updateUserRole = async (req, res) => {
   try {
