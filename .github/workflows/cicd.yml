@@ -63,5 +63,6 @@ jobs:
         run: |
           echo "PORT=3000" >> .env
           echo "MONGO_URI=${{ secrets.MONGO_URI }}" >> .env
-          echo "REFRESH_TOKEN_SECRET=${{ secrets.REFRESH_TOKEN_SECRET }}" >> .env
+          echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
+          echo "FRONTEND_URL=${{ secrets.FRONTEND_URL }}" >> .env
           docker compose up -d
