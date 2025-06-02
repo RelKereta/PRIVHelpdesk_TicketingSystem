@@ -45,6 +45,9 @@ jobs:
           echo "export PATH=$HOME/bin:$PATH" >> $GITHUB_ENV
           echo "export DOCKER_HOST=unix://$XDG_RUNTIME_DIR/docker.sock" >> $GITHUB_ENV
 
+      - name: Login to Docker Hub
+        run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+
       - name: Pull Latest Backend Image
         run: docker pull ${{ secrets.DOCKER_USERNAME }}/priv-helpdesk-backend:latest
 
