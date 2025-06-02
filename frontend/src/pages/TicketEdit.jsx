@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ticketService, userService } from '../services/api';
+import './TicketEdit.css';
 
 const TicketEdit = () => {
   const { id } = useParams();
@@ -119,64 +120,189 @@ const TicketEdit = () => {
     }
   };
 
-  if (loading) return <div>Loading...</div>;
-  if (error) return <div style={{color:'red'}}>{error}</div>;
-  if (!ticket) return <div>Ticket not found</div>;
+  if (loading) return <div className="loading-state">Loading ticket...</div>;
+  if (error) return <div className="error-state">{error}</div>;
+  if (!ticket) return <div className="not-found-state">Ticket not found</div>;
 
   return (
-    <div style={{maxWidth:600,margin:'2rem auto',padding:'2rem',background:'#fff',borderRadius:8}}>
-      <h2>Edit Ticket</h2>
-      <form onSubmit={handleSave}>
-        <label>Title<input name="title" value={form.title} onChange={handleChange} required /></label><br/>
-        <label>Description<textarea name="description" value={form.description} onChange={handleChange} required /></label><br/>
-        <label>Status
-          <select name="status" value={form.status} onChange={handleChange} required>
-            <option value="Open">Open</option>
-            <option value="In Progress">In Progress</option>
-            <option value="Resolved">Resolved</option>
-            <option value="Closed">Closed</option>
-          </select>
-        </label><br/>
-        <label>Priority
-          <select name="priority" value={form.priority} onChange={handleChange} required>
-            <option value="Low">Low</option>
-            <option value="Medium">Medium</option>
-            <option value="High">High</option>
-            <option value="Critical">Critical</option>
-          </select>
-        </label><br/>
-        <label>Category
-          <select name="category" value={form.category} onChange={handleChange} required>
-            <option value="Hardware">Hardware</option>
-            <option value="Software">Software</option>
-            <option value="Network">Network</option>
-            <option value="Account">Account</option>
-            <option value="Other">Other</option>
-          </select>
-        </label><br/>
-        <label>Assign to
-          <select name="assignee" value={form.assignee} onChange={handleChange}>
-            <option value="">Unassigned</option>
-            {users.map(u => (
-              <option key={u._id} value={u._id}>{u.username} ({u.role})</option>
-            ))}
-          </select>
-        </label><br/>
-        <button type="submit" disabled={saving}>Save</button>
-        <button type="button" onClick={handleResolve} disabled={saving || form.status==='Resolved'} style={{marginLeft:8}}>Resolve</button>
-        <button type="button" onClick={handleDelete} disabled={deleting} style={{marginLeft:8, color:'red'}}>Delete</button>
+    <div className="edit-ticket-page">
+      <div className="edit-ticket-header">
+        <h2>Edit Ticket</h2>
+        <p>Ticket ID: {ticket._id}</p>
+      </div>
+
+      <form className="ticket-edit-form" onSubmit={handleSave}>
+        <div className="form-section">
+          <h3>Ticket Information</h3>
+          
+          <div className="form-group">
+            <label>Title</label>
+            <input 
+              className="form-input"
+              name="title" 
+              value={form.title || ''} 
+              onChange={handleChange} 
+              required 
+            />
+          </div>
+
+          <div className="form-group">
+            <label>Description</label>
+            <textarea 
+              className="form-textarea"
+              name="description" 
+              value={form.description || ''} 
+              onChange={handleChange} 
+              required 
+            />
+          </div>
+
+          <div className="form-row">
+            <div className="form-group">
+              <label>Status</label>
+              <select 
+                className="form-select"
+                name="status" 
+                value={form.status || ''} 
+                onChange={handleChange} 
+                required
+              >
+                <option value="Open">Open</option>
+                <option value="In Progress">In Progress</option>
+                <option value="Resolved">Resolved</option>
+                <option value="Closed">Closed</option>
+              </select>
+            </div>
+
+            <div className="form-group">
+              <label>Priority</label>
+              <select 
+                className="form-select"
+                name="priority" 
+                value={form.priority || ''} 
+                onChange={handleChange} 
+                required
+              >
+                <option value="Low">Low</option>
+                <option value="Medium">Medium</option>
+                <option value="High">High</option>
+                <option value="Critical">Critical</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="form-row">
+            <div className="form-group">
+              <label>Category</label>
+              <select 
+                className="form-select"
+                name="category" 
+                value={form.category || ''} 
+                onChange={handleChange} 
+                required
+              >
+                <option value="Hardware">Hardware</option>
+                <option value="Software">Software</option>
+                <option value="Network">Network</option>
+                <option value="Account">Account</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+
+            <div className="form-group">
+              <label>Assign to</label>
+              <select 
+                className="form-select"
+                name="assignee" 
+                value={form.assignee || ''} 
+                onChange={handleChange}
+              >
+                <option value="">Unassigned</option>
+                {users.map(u => (
+                  <option key={u._id} value={u._id}>
+                    {u.username} ({u.role})
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div className="form-actions">
+          <button 
+            type="submit" 
+            className="btn btn-primary" 
+            disabled={saving}
+          >
+            {saving ? 'Saving...' : 'Save'}
+          </button>
+          <button 
+            type="button" 
+            className="btn btn-success" 
+            onClick={handleResolve} 
+            disabled={saving || form.status === 'Resolved'}
+          >
+            Resolve
+          </button>
+          <button 
+            type="button" 
+            className="btn btn-danger" 
+            onClick={handleDelete} 
+            disabled={deleting}
+          >
+            {deleting ? 'Deleting...' : 'Delete'}
+          </button>
+        </div>
       </form>
-      <hr/>
-      <h3>Comments</h3>
-      <ul>
-        {ticket.comments && ticket.comments.map((c,i) => (
-          <li key={i}><b>{c.author?.username||'Unknown'}:</b> {c.text} <i style={{fontSize:'0.8em',color:'#888'}}>{new Date(c.createdAt).toLocaleString()}</i></li>
-        ))}
-      </ul>
-      <form onSubmit={handleAddComment} style={{marginTop:'1em'}}>
-        <input value={comment} onChange={e=>setComment(e.target.value)} placeholder="Add comment..." required style={{width:'80%'}} />
-        <button type="submit" disabled={commenting || !comment.trim()}>Add</button>
-      </form>
+
+      <div className="comments-section">
+        <div className="comments-header">
+          <h3>Comments</h3>
+        </div>
+        
+        <div className="comments-list">
+          {ticket.comments && ticket.comments.length > 0 ? (
+            ticket.comments.map((c, i) => (
+              <div key={i} className="comment-item">
+                <div className="comment-header">
+                  <span className="comment-author">
+                    {c.author?.username || 'Unknown'}
+                  </span>
+                  <span className="comment-date">
+                    {new Date(c.createdAt).toLocaleString()}
+                  </span>
+                </div>
+                <p className="comment-text">{c.text}</p>
+              </div>
+            ))
+          ) : (
+            <div className="comment-item">
+              <p className="comment-text" style={{ fontStyle: 'italic', color: '#888' }}>
+                No comments yet.
+              </p>
+            </div>
+          )}
+        </div>
+
+        <form className="comment-form" onSubmit={handleAddComment}>
+          <div className="comment-input-group">
+            <input 
+              className="comment-input"
+              value={comment} 
+              onChange={e => setComment(e.target.value)} 
+              placeholder="Add a comment..." 
+              required 
+            />
+            <button 
+              type="submit" 
+              className="btn-add-comment" 
+              disabled={commenting || !comment.trim()}
+            >
+              {commenting ? 'Adding...' : 'Add'}
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 };

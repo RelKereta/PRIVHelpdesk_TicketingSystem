@@ -77,10 +77,22 @@ const createTicket = async (req, res) => {
 const getTickets = async (req, res) => {
   try {
     const userId = req.headers['x-user-id'];
+    
+    // Check if user ID is provided
+    if (!userId) {
+      return res.status(401).json({ 
+        message: 'Authentication required. Please log in to access tickets.',
+        code: 'NO_USER_ID'
+      });
+    }
+
     const user = await User.findById(userId);
     
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({ 
+        message: 'User not found. Please log in again.',
+        code: 'USER_NOT_FOUND'
+      });
     }
 
     let query = {};
@@ -98,7 +110,11 @@ const getTickets = async (req, res) => {
     res.json(tickets);
   } catch (error) {
     console.error('Error fetching tickets:', error);
-    res.status(500).json({ message: 'Error fetching tickets', error: error.message });
+    res.status(500).json({ 
+      message: 'Error fetching tickets', 
+      error: error.message,
+      code: 'INTERNAL_ERROR'
+    });
   }
 };
 

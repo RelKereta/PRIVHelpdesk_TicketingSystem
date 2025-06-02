@@ -20,8 +20,13 @@ function Dashboard() {
         setLoading(true);
         setError('');
 
-        // Fetch current user
+        // Check if user is logged in first
         const userData = await authService.getCurrentUser();
+        if (!userData || !userData._id) {
+          // Redirect to sign-in if no valid user found
+          window.location.href = '/signin';
+          return;
+        }
         setUser(userData);
         
         // Fetch tickets based on user role
@@ -72,6 +77,14 @@ function Dashboard() {
         }
       } catch (err) {
         console.error('Dashboard data fetch error:', err);
+        
+        // Handle authentication errors
+        if (err.response?.status === 401 || err.message === 'No user found') {
+          localStorage.removeItem('user');
+          window.location.href = '/signin';
+          return;
+        }
+        
         setError(err.response?.data?.message || 'Failed to fetch dashboard data');
       } finally {
         setLoading(false);
