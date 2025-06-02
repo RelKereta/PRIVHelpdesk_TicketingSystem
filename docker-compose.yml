@@ -6,7 +6,7 @@ services:
     restart: always
     environment:
       PORT: ${3000}
-      CONNECTION_URL: ${MONGODB_URI}
+      CONNECTION_URL: ${MONGO_URI}
       REFRESH_TOKEN_SECRET: ${PRIV_Helpdesk_2024_Secure_JWT_Secret_Key_8x9y2z1w4v3u6t7s}
     ports:
       - "3014:3014"
