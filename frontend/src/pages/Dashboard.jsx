@@ -2,11 +2,10 @@ import React, { useState, useEffect } from 'react';
 import TicketsTable from '../components/TicketsTable.jsx';
 import ErrorBoundary from '../components/ErrorBoundary.jsx';
 import './Dashboard.css';
-import { ticketService, analyticsService, authService } from '../services/api';
+import { ticketService, authService } from '../services/api';
 
 function Dashboard() {
   const [user, setUser] = useState(null);
-  const [tickets, setTickets] = useState([]);
   const [stats, setStats] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -31,7 +30,6 @@ function Dashboard() {
         
         // Fetch tickets based on user role
         const ticketsData = await ticketService.getTickets();
-        setTickets(ticketsData);
         
         // Calculate stats from tickets data
         const calculatedStats = {
@@ -92,24 +90,6 @@ function Dashboard() {
     };
     fetchData();
   }, []);
-
-  const handleStatusChange = async (ticketId, newStatus) => {
-    try {
-      await ticketService.updateTicket(ticketId, { status: newStatus });
-      const updatedTickets = await ticketService.getTickets();
-      setTickets(updatedTickets);
-    } catch (err) {
-      setError(err.response?.data?.message || 'Failed to update ticket status');
-    }
-  };
-
-  const handleQuickApprove = (ticketId, approved) => {
-    // Implement if needed
-  };
-
-  const handleQuickResolve = (ticketId, resolution) => {
-    // Implement if needed
-  };
 
   const getPriorityColor = (priority) => {
     switch (priority) {
@@ -264,20 +244,6 @@ function Dashboard() {
                     <h4>{ticket.title}</h4>
                     <p className="requester">Requested by: {ticket.requesterName}</p>
                     <p className="description">{ticket.description}</p>
-                    <div className="approval-actions">
-                      <button 
-                        onClick={() => handleQuickApprove(ticket._id, true)}
-                        className="approve-btn"
-                      >
-                        Approve
-                      </button>
-                      <button 
-                        onClick={() => handleQuickApprove(ticket._id, false)}
-                        className="reject-btn"
-                      >
-                        Reject
-                      </button>
-                    </div>
                   </div>
                 ))}
               </div>
@@ -288,16 +254,28 @@ function Dashboard() {
             <div className="dashboard-section">
               <h2>Quick Actions</h2>
               <div className="quick-actions">
-                <button className="action-btn primary">
+                <button 
+                  className="action-btn primary"
+                  onClick={() => window.location.href = '/all-tickets'}
+                >
                   📋 View All Tickets
                 </button>
-                <button className="action-btn secondary">
+                <button 
+                  className="action-btn secondary"
+                  onClick={() => window.location.href = '/assign-tickets'}
+                >
                   👥 Assign Tickets
                 </button>
-                <button className="action-btn success">
+                <button 
+                  className="action-btn success"
+                  onClick={() => window.location.href = '/bulk-resolve'}
+                >
                   ✅ Bulk Resolve
                 </button>
-                <button className="action-btn info">
+                <button 
+                  className="action-btn info"
+                  onClick={() => window.location.href = '/reports'}
+                >
                   📊 Generate Report
                 </button>
               </div>
@@ -335,21 +313,11 @@ function Dashboard() {
                       <span>Created: {new Date(ticket.createdAt).toLocaleDateString()}</span>
                       <span>SLA: {formatTimeRemaining(ticket.slaResolutionDue)}</span>
                     </div>
-                    {(isTechnician() || isAdmin()) && ticket.status === 'Open' && (
-                      <div className="ticket-actions">
-                        <button 
-                          onClick={() => handleQuickResolve(ticket._id, 'Quick resolution from dashboard')}
-                          className="resolve-btn"
-                        >
-                          Quick Resolve
-                        </button>
-                      </div>
-                    )}
                   </div>
                 ))}
                 {userTickets.length > 5 && (
                   <div className="view-all-link">
-                    <a href="#tickets">View all {userTickets.length} tickets →</a>
+                    <a href="/all-tickets">View all {userTickets.length} tickets →</a>
                   </div>
                 )}
               </div>

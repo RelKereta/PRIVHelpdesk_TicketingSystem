@@ -7,6 +7,9 @@ const { auth, checkRole } = require('../middleware/auth');
 router.post('/register', userController.register);
 router.post('/login', userController.login);
 
+// Routes with internal authentication (for better error handling)
+router.get('/agents-admins', userController.getAgentsAndAdmins);
+
 // Protected routes
 router.get('/me', auth, userController.getCurrentUser);
 router.put('/profile', auth, userController.updateProfile);

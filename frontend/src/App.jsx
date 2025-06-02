@@ -14,6 +14,10 @@ import UserManagement from './pages/UserManagement';
 import UserEdit from './pages/UserEdit';
 import SignIn from './pages/SignIn';
 import SignUp from './pages/SignUp';
+import AllTickets from './pages/AllTickets';
+import AssignTickets from './pages/AssignTickets';
+import ReportsPage from './pages/ReportsPage';
+import BulkResolve from './pages/BulkResolve';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
 import TicketEdit from './pages/TicketEdit';
@@ -76,6 +80,10 @@ function AppContent() {
           <Route path="/chatbot" element={<ProtectedRoute><Chatbot /></ProtectedRoute>} />
           <Route path="/create-ticket" element={<ProtectedRoute><CreateTicket /></ProtectedRoute>} />
           <Route path="/tickets/:id/edit" element={<ProtectedRoute requiredPermission="admin"><TicketEdit /></ProtectedRoute>} />
+          <Route path="/all-tickets" element={<ProtectedRoute><AllTickets /></ProtectedRoute>} />
+          <Route path="/assign-tickets" element={<ProtectedRoute><AssignTickets /></ProtectedRoute>} />
+          <Route path="/reports" element={<ProtectedRoute><ReportsPage /></ProtectedRoute>} />
+          <Route path="/bulk-resolve" element={<ProtectedRoute><BulkResolve /></ProtectedRoute>} />
           <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
         </Routes>
       </div>

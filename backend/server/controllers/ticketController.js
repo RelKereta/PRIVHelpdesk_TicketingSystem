@@ -231,36 +231,82 @@ const updateTicket = async (req, res) => {
 // Assign a ticket to an agent
 const assignTicket = async (req, res) => {
   try {
+    console.log('=== TICKET ASSIGNMENT REQUEST ===');
     const { id } = req.params;
     const { assigneeId } = req.body;
     const userId = req.headers['x-user-id'];
+    
+    console.log('Request details:', {
+      ticketId: id,
+      assigneeId,
+      requestingUserId: userId
+    });
+
     const user = await User.findById(userId);
     
     if (!user) {
+      console.log('ERROR: Requesting user not found');
       return res.status(404).json({ message: 'User not found' });
     }
 
+    console.log('Requesting user:', {
+      id: user._id,
+      username: user.username,
+      role: user.role
+    });
+
     // Check if user can assign tickets
     if (!user.hasPermission('canAssignTickets')) {
+      console.log('ERROR: User does not have permission to assign tickets');
       return res.status(403).json({ message: 'Permission denied: Cannot assign tickets' });
     }
 
     const ticket = await Ticket.findById(id);
     if (!ticket) {
+      console.log('ERROR: Ticket not found');
       return res.status(404).json({ message: 'Ticket not found' });
     }
 
+    console.log('Found ticket:', {
+      id: ticket._id,
+      ticketNumber: ticket.ticketNumber,
+      title: ticket.title,
+      currentAssignee: ticket.assignee
+    });
+
     const assignee = await User.findById(assigneeId);
     if (!assignee) {
+      console.log('ERROR: Assignee not found');
       return res.status(404).json({ message: 'Assignee not found' });
     }
 
+    console.log('Found assignee:', {
+      id: assignee._id,
+      username: assignee.username,
+      role: assignee.role
+    });
+
     // Check if assignee is an agent or admin
     if (assignee.role === 'user') {
+      console.log('ERROR: Cannot assign ticket to regular user');
       return res.status(400).json({ message: 'Cannot assign ticket to regular user' });
     }
 
+    // Remove from previous assignee if exists
+    if (ticket.assignee && ticket.assignee.userId) {
+      console.log('Removing ticket from previous assignee');
+      const previousAssignee = await User.findById(ticket.assignee.userId);
+      if (previousAssignee) {
+        previousAssignee.assignedTickets = previousAssignee.assignedTickets.filter(
+          t => t.ticketId.toString() !== ticket._id.toString()
+        );
+        await previousAssignee.save();
+        console.log('Removed from previous assignee successfully');
+      }
+    }
+
     // Update ticket assignment
+    console.log('Updating ticket assignment...');
     ticket.assignee = {
       userId: assignee._id,
       username: assignee.username
@@ -268,16 +314,34 @@ const assignTicket = async (req, res) => {
     
     if (ticket.status === 'Open') {
       ticket.status = 'In Progress';
+      console.log('Updated ticket status to In Progress');
     }
 
     await ticket.save();
+    console.log('Ticket saved successfully');
 
     // Add ticket to assignee's assignedTickets
-    await assignee.addAssignedTicket(ticket);
+    console.log('Adding ticket to assignee assignedTickets...');
+    
+    // Check if ticket is already in assignee's list
+    const existingIndex = assignee.assignedTickets.findIndex(
+      t => t.ticketId.toString() === ticket._id.toString()
+    );
+    
+    if (existingIndex === -1) {
+      await assignee.addAssignedTicket(ticket);
+      console.log('Added ticket to assignee assignedTickets');
+    } else {
+      console.log('Ticket already in assignee assignedTickets, updating status');
+      assignee.assignedTickets[existingIndex].status = ticket.status;
+      assignee.assignedTickets[existingIndex].assignedAt = new Date();
+      await assignee.save();
+    }
 
+    console.log('Assignment completed successfully');
     res.json(ticket);
   } catch (error) {
-    console.error('Error assigning ticket:', error);
+    console.error('ERROR in assignTicket:', error);
     res.status(500).json({ message: 'Error assigning ticket', error: error.message });
   }
 };
