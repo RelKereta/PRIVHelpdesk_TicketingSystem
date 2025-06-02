@@ -2,7 +2,7 @@ version: "3.8"
 
 services:
   backend:
-    image: marputtt/PRIV-backend:latest
+    image: marputtt/priv-backend:latest
     restart: always
     environment:
       PORT: 3000
@@ -12,7 +12,7 @@ services:
       - "3014:3014"
 
   frontend:
-    image: marputtt/PRIV-frontend:latest
+    image: marputtt/priv-frontend:latest
     restart: always
     depends_on:
       - backend
