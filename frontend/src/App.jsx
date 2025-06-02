@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 
 import Dashboard from './pages/Dashboard';
@@ -43,11 +43,36 @@ const AuthenticatedRoute = ({ children }) => {
 
 function AppContent() {
   const [collapsed, setCollapsed] = useState(false);
+  const sidebarRef = useRef(null);
+  
   const handleToggleSidebar = () => setCollapsed(!collapsed);
 
   const location = useLocation();
   const hideLayoutRoutes = ['/signin', '/signup'];
   const shouldHideLayout = hideLayoutRoutes.includes(location.pathname);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      // Only handle clicks if sidebar is visible (not collapsed) and layout is not hidden
+      if (!collapsed && !shouldHideLayout) {
+        // Check if click is outside the sidebar
+        if (sidebarRef.current && !sidebarRef.current.contains(event.target)) {
+          // Also check if the clicked element is not the toggle button
+          const toggleButton = document.querySelector('.toggle-button');
+          if (!toggleButton || !toggleButton.contains(event.target)) {
+            setCollapsed(true);
+          }
+        }
+      }
+    };
+
+    // Add event listener for clicks
+    document.addEventListener('mousedown', handleClickOutside);
+    
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [collapsed, shouldHideLayout]);
 
   useEffect(() => {
     const handleUnload = () => {};
@@ -63,7 +88,7 @@ function AppContent() {
   return (
     <div className="app-container">
       {!shouldHideLayout && <Header onToggleSidebar={handleToggleSidebar} />}
-      {!shouldHideLayout && <Sidebar collapsed={collapsed} />}
+      {!shouldHideLayout && <Sidebar ref={sidebarRef} collapsed={collapsed} />}
       <div className={`main-content ${collapsed ? 'sidebar-collapsed' : ''}`}>
         <Routes>
           <Route path="/signin" element={<AuthenticatedRoute><SignIn /></AuthenticatedRoute>} />

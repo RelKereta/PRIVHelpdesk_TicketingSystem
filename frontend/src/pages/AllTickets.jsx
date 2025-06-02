@@ -10,7 +10,7 @@ function AllTickets() {
   const [filters, setFilters] = useState({
     status: '',
     priority: '',
-    assignedTo: '',
+    assignee: '',
     search: ''
   });
   const [sortBy, setSortBy] = useState('createdAt');
@@ -62,9 +62,9 @@ function AllTickets() {
     }
 
     // Apply assignee filter
-    if (filters.assignedTo) {
+    if (filters.assignee) {
       filtered = filtered.filter(ticket => 
-        ticket.assignedTo && ticket.assignedTo._id === filters.assignedTo
+        ticket.assignee && ticket.assignee.userId === filters.assignee
       );
     }
 
@@ -208,8 +208,8 @@ function AllTickets() {
 
         <div className="filter-group">
           <select
-            value={filters.assignedTo}
-            onChange={(e) => handleFilterChange('assignedTo', e.target.value)}
+            value={filters.assignee}
+            onChange={(e) => handleFilterChange('assignee', e.target.value)}
             className="filter-select"
           >
             <option value="">All Assignees</option>
@@ -278,12 +278,12 @@ function AllTickets() {
                   </span>
                 </td>
                 <td>
-                  {ticket.assignedTo ? 
-                    `${ticket.assignedTo.firstName} ${ticket.assignedTo.lastName}` : 
+                  {ticket.assignee ? 
+                    `${ticket.assignee.username}` : 
                     'Unassigned'
                   }
                 </td>
-                <td>{ticket.requesterName || 'Unknown'}</td>
+                <td>{ticket.requester?.username || 'Unknown'}</td>
                 <td>{formatDate(ticket.createdAt)}</td>
                 <td>
                   <div className="action-buttons">

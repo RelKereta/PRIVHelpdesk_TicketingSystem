@@ -37,8 +37,8 @@ function Dashboard() {
           open: ticketsData.filter(t => t.status === 'Open').length,
           inProgress: ticketsData.filter(t => t.status === 'In Progress').length,
           overdue: ticketsData.filter(t => 
-            t.slaResolutionDue && 
-            new Date(t.slaResolutionDue) < new Date() && 
+            t.slaDeadline && 
+            new Date(t.slaDeadline) < new Date() && 
             t.status !== 'Resolved' && 
             t.status !== 'Closed'
           ).length,
@@ -49,8 +49,8 @@ function Dashboard() {
         
         // Filter overdue tickets
         setOverdueTickets(ticketsData.filter(t => 
-          t.slaResolutionDue && 
-          new Date(t.slaResolutionDue) < new Date() && 
+          t.slaDeadline && 
+          new Date(t.slaDeadline) < new Date() && 
           t.status !== 'Resolved' && 
           t.status !== 'Closed'
         ));
@@ -59,8 +59,8 @@ function Dashboard() {
         if (userData.role === 'agent' || userData.role === 'admin') {
           // For agents and admins, show tickets assigned to them
           setUserTickets(ticketsData.filter(t => 
-            t.assignedTo && 
-            t.assignedTo._id === userData._id
+            t.assignee && 
+            t.assignee.userId === userData._id
           ));
           // Show pending approvals for agents and admins
           setPendingApprovals(ticketsData.filter(t => 
@@ -213,7 +213,7 @@ function Dashboard() {
                     <span className="ticket-id">{ticket.ticketNumber}</span>
                     <span className="ticket-subject">{ticket.title}</span>
                     <span className="overdue-time">
-                      {formatTimeRemaining(ticket.slaResolutionDue)} overdue
+                      {formatTimeRemaining(ticket.slaDeadline)} overdue
                     </span>
                   </div>
                 ))}
@@ -242,7 +242,7 @@ function Dashboard() {
                       </span>
                     </div>
                     <h4>{ticket.title}</h4>
-                    <p className="requester">Requested by: {ticket.requesterName}</p>
+                    <p className="requester">Requested by: {ticket.requester?.username}</p>
                     <p className="description">{ticket.description}</p>
                   </div>
                 ))}
@@ -311,7 +311,7 @@ function Dashboard() {
                     <h4>{ticket.title}</h4>
                     <div className="ticket-meta">
                       <span>Created: {new Date(ticket.createdAt).toLocaleDateString()}</span>
-                      <span>SLA: {formatTimeRemaining(ticket.slaResolutionDue)}</span>
+                      <span>SLA: {formatTimeRemaining(ticket.slaDeadline)}</span>
                     </div>
                   </div>
                 ))}

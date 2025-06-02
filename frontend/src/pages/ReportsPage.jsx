@@ -95,11 +95,9 @@ function ReportsPage() {
     // Agent performance
     const agentPerformance = {};
     filteredTickets.forEach(ticket => {
-      if (ticket.assignedTo) {
-        const agentName = `${ticket.assignedTo.firstName} ${ticket.assignedTo.lastName}`;
-        if (!agentPerformance[agentName]) {
-          agentPerformance[agentName] = { total: 0, resolved: 0 };
-        }
+      if (ticket.assignee) {
+        const agentName = `${ticket.assignee.username}`;
+        agentPerformance[agentName] = (agentPerformance[agentName] || { total: 0, resolved: 0 });
         agentPerformance[agentName].total++;
         if (ticket.status === 'Resolved' || ticket.status === 'Closed') {
           agentPerformance[agentName].resolved++;

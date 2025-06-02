@@ -2,7 +2,7 @@ import React from 'react';
 import { NavLink } from 'react-router-dom';
 import './Sidebar.css';
 
-function Sidebar({ collapsed }) {
+const Sidebar = React.forwardRef(({ collapsed }, ref) => {
   const user = JSON.parse(localStorage.getItem('user'));
   const isAdmin = user?.role === 'admin';
 
@@ -39,7 +39,7 @@ function Sidebar({ collapsed }) {
   };
 
   return (
-    <aside className={`sidebar ${collapsed ? 'collapsed' : ''}`}>
+    <aside ref={ref} className={`sidebar ${collapsed ? 'collapsed' : ''}`}>
       {/* Profile Section */}
       <div className="profile-section">
         <div className="profile-pic">
@@ -132,6 +132,8 @@ function Sidebar({ collapsed }) {
       </nav>
     </aside>
   );
-}
+});
+
+Sidebar.displayName = 'Sidebar';
 
 export default Sidebar;

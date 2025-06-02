@@ -328,4 +328,209 @@
     margin: 0 -15px;
     border-radius: 0;
   }
+}
+
+/* Enhanced Department Statistics */
+.stats-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+.summary-card {
+  background: white;
+  padding: 1rem;
+  border-radius: 6px;
+  text-align: center;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.summary-card h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 0.9rem;
+  color: #666;
+  font-weight: 500;
+}
+
+.summary-number {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #2c3e50;
+}
+
+/* Enhanced Department Cards */
+.dept-stat-card {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e9ecef;
+  position: relative;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.dept-stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.dept-stat-card.no-tickets {
+  opacity: 0.7;
+  border-style: dashed;
+}
+
+.dept-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.dept-header h3 {
+  margin: 0;
+  color: #2c3e50;
+  font-size: 1.2rem;
+}
+
+.overdue-badge {
+  background: #dc3545;
+  color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+/* Department Metrics */
+.dept-metrics {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e9ecef;
+}
+
+.metric-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.metric-label {
+  font-size: 0.85rem;
+  color: #666;
+  font-weight: 500;
+}
+
+.metric-value {
+  font-weight: bold;
+  font-size: 0.9rem;
+}
+
+.metric-value.good {
+  color: #28a745;
+}
+
+.metric-value.average {
+  color: #ffc107;
+}
+
+.metric-value.poor {
+  color: #dc3545;
+}
+
+/* Priority Breakdown */
+.priority-breakdown {
+  margin-top: 0.75rem;
+}
+
+.breakdown-label {
+  font-size: 0.85rem;
+  color: #666;
+  font-weight: 500;
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.priority-bars {
+  display: flex;
+  gap: 0.25rem;
+  align-items: center;
+}
+
+.priority-bar {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+  cursor: help;
+}
+
+.priority-bar.critical {
+  background-color: #dc3545;
+}
+
+.priority-bar.high {
+  background-color: #fd7e14;
+}
+
+.priority-bar.medium {
+  background-color: #ffc107;
+}
+
+.priority-bar.low {
+  background-color: #28a745;
+}
+
+.no-tickets-message {
+  text-align: center;
+  padding: 2rem 1rem;
+  color: #6c757d;
+  font-style: italic;
+}
+
+.no-tickets-message span {
+  background: #f8f9fa;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  border: 1px dashed #dee2e6;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .stats-summary {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .summary-number {
+    font-size: 1.5rem;
+  }
+  
+  .dept-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+  
+  .overdue-badge {
+    align-self: flex-end;
+  }
+  
+  .metric-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .stats-summary {
+    grid-template-columns: 1fr;
+  }
+  
+  .dept-stat-card {
+    padding: 1rem;
+  }
 } 

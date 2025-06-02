@@ -240,10 +240,10 @@ function BulkResolve() {
                   <h4 className="ticket-title">{ticket.title}</h4>
                   <p className="ticket-description">{ticket.description}</p>
                   <div className="ticket-meta">
-                    <span>Requester: {ticket.requesterName || 'Unknown'}</span>
+                    <span>Requester: {ticket.requester?.username || 'Unknown'}</span>
                     <span>Created: {new Date(ticket.createdAt).toLocaleDateString()}</span>
-                    {ticket.assignedTo && (
-                      <span>Assigned to: {ticket.assignedTo.firstName} {ticket.assignedTo.lastName}</span>
+                    {ticket.assignee && (
+                      <span>Assigned to: {ticket.assignee.username}</span>
                     )}
                   </div>
                 </div>
