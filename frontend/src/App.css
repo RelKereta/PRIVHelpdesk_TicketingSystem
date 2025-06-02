@@ -15,17 +15,16 @@
 .main-content {
   flex: 1;
   padding: 20px;
-  padding-top: 90px; /* Increased to account for fixed header */
-  padding-left: 270px; /* Default padding when sidebar is expanded (250px sidebar + 20px margin) */
+  padding-top: 90px;
+  padding-left: 270px;
   min-height: 100vh;
   box-sizing: border-box;
-  transition: padding-left 0.3s ease-in-out, margin-left 0.3s ease-in-out; /* Smooth transition */
+  transition: padding-left 0.3s ease;
   width: 100%;
 }
 
 .main-content.sidebar-collapsed {
-  padding-left: 20px; /* Equal padding on both sides when sidebar is collapsed */
-  margin-left: 0; /* Reset any margin when collapsed */
+  padding-left: 20px;
 }
 
 /* Ensure all page containers inherit the proper spacing */
@@ -44,28 +43,23 @@
   transition: all 0.3s ease-in-out;
 }
 
-/* Debug styles - remove these after testing */
-.sidebar-collapsed .dashboard-page {
-  border: 3px solid blue !important;
-  max-width: none !important;
-  width: 100% !important;
-}
-
 .header {
   background-color: white;
-  padding: 15px;
+  padding: 15px 20px;
   box-shadow: 0 2px 5px rgba(0,0,0,0.1);
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   z-index: 1001;
-  transition: all 0.3s ease-in-out;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 @media (max-width: 768px) {
   .main-content {
-    padding-left: 20px; /* Always centered on mobile */
+    padding-left: 20px;
     padding-right: 20px;
   }
   

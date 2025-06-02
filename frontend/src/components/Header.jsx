@@ -1,9 +1,17 @@
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import './Header.css';
 
 function Header({ onToggleSidebar }) {
   const location = useLocation();
+  const navigate = useNavigate();
+  const user = JSON.parse(localStorage.getItem('user'));
+
+  const handleLogout = () => {
+    localStorage.removeItem('user');
+    localStorage.removeItem('userId');
+    navigate('/signin');
+  };
 
   return (
     <header className="header">
@@ -45,6 +53,15 @@ function Header({ onToggleSidebar }) {
           Contact
         </Link>
       </nav>
+
+      {user && (
+        <div className="header-right">
+          <span className="user-greeting">Hello, {user.firstName}</span>
+          <button onClick={handleLogout} className="logout-btn">
+            Logout
+          </button>
+        </div>
+      )}
     </header>
   );
 }

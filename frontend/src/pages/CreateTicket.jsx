@@ -1,136 +1,174 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useTickets } from '../context/TicketContext';  // Import your context hook
+import { ticketService } from '../services/api';
 import './CreateTicket.css';
 
-function CreateTicket() {
+const CreateTicket = () => {
   const navigate = useNavigate();
-  const { addTicket } = useTickets();  // Get addTicket from context
-  
-  const [ticketData, setTicketData] = useState({
-    subject: '',
-    priority: 'Medium',
-    type: 'Question',
-    team: '',
+  const user = JSON.parse(localStorage.getItem('user'));
+  const [formData, setFormData] = useState({
+    title: '',
     description: '',
+    priority: 'medium',
+    category: '',
+    attachments: []
   });
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setTicketData({
-      ...ticketData,
+    setFormData(prev => ({
+      ...prev,
       [name]: value
-    });
+    }));
   };
 
-  const handleSubmit = (e) => {
+  const handleFileChange = (e) => {
+    const files = Array.from(e.target.files);
+    setFormData(prev => ({
+      ...prev,
+      attachments: [...prev.attachments, ...files]
+    }));
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setError('');
+    setLoading(true);
 
-    const newTicket = {
-      ...ticketData,
-      id: Date.now(),
-      status: 'Open',
-      contact: 'System Assigned',
-      resolvedDate: null,
-      createdDate: new Date().toISOString()
-    };
+    try {
+      // Format the data according to the backend expectations
+      const ticketData = new FormData();
+      ticketData.append('title', formData.title.trim());
+      ticketData.append('description', formData.description.trim());
+      ticketData.append('category', formData.category);
+      ticketData.append('priority', formData.priority.charAt(0).toUpperCase() + formData.priority.slice(1));
 
-    addTicket(newTicket);  // Add ticket to global state
+      formData.attachments.forEach(file => {
+        ticketData.append('attachments', file);
+      });
 
-    navigate('/');  // Redirect to tickets page or wherever your tickets table is
+      console.log('Submitting ticket data:', ticketData);
+      const response = await ticketService.createTicket(ticketData);
+      console.log('Ticket created successfully:', response);
+      navigate('/dashboard');
+    } catch (err) {
+      console.error('Error creating ticket:', err);
+      setError(err.response?.data?.message || 'Failed to create ticket. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div>
-      <div className="create-ticket-container">
-        <div className="create-ticket-header">
-          <h1>Create New Ticket</h1>
-        </div>
-        
-        <form className="create-ticket-form" onSubmit={handleSubmit}>
+    <div className="create-ticket-page">
+      <div className="create-ticket-header">
+        <h1>Create New Ticket</h1>
+        {error && <div className="error-message">{error}</div>}
+      </div>
+      
+      <form onSubmit={handleSubmit} className="ticket-form">
+        <div className="form-section">
           <div className="form-group">
-            <label htmlFor="subject">Subject *</label>
+            <label htmlFor="title">Title</label>
             <input
               type="text"
-              id="subject"
-              name="subject"
-              value={ticketData.subject}
+              id="title"
+              name="title"
+              value={formData.title}
               onChange={handleChange}
               required
-              placeholder="Enter a clear subject that describes your issue"
+              placeholder="Brief description of the issue"
+              className="form-input"
             />
           </div>
-          
-          <div className="form-group">
-            <label htmlFor="priority">Priority *</label>
-            <select
-              id="priority"
-              name="priority"
-              value={ticketData.priority}
-              onChange={handleChange}
-              required
-            >
-              <option value="Critical">Critical (3h resolution)</option>
-              <option value="High">High (5h resolution)</option>
-              <option value="Medium">Medium (8h resolution)</option>
-              <option value="Low">Low (16h resolution)</option>
-            </select>
-          </div>
-          
-          <div className="form-group">
-            <label htmlFor="type">Type *</label>
-            <select
-              id="type"
-              name="type"
-              value={ticketData.type}
-              onChange={handleChange}
-              required
-            >
-              <option value="Question">Question</option>
-              <option value="Incident">Incident</option>
-              <option value="Bug">Bug</option>
-              <option value="Feature Request">Feature Request</option>
-              <option value="Unspecified">Unspecified</option>
-            </select>
-          </div>
-          
-          <div className="form-group">
-            <label htmlFor="team">Your Team *</label>
-            <select
-              id="team"
-              name="team"
-              value={ticketData.team}
-              onChange={handleChange}
-              required
-            >
-              <option value="">Select your team</option>
-              <option value="Billing">Billing</option>
-              <option value="Product Experts">Product Experts</option>
-              <option value="IT Support">IT Support</option>
-              <option value="Sales">Sales</option>
-              <option value="Marketing">Marketing</option>
-            </select>
-          </div>
-          
+
           <div className="form-group">
             <label htmlFor="description">Description</label>
             <textarea
               id="description"
               name="description"
-              value={ticketData.description}
+              value={formData.description}
               onChange={handleChange}
-              placeholder="Please provide additional details about your issue"
+              required
+              placeholder="Detailed description of the issue"
+              rows="5"
+              className="form-textarea"
             />
           </div>
-          
-          <div className="form-actions">
-            <button type="button" className="cancel-button" onClick={() => navigate('/')}>Cancel</button>
-            <button type="submit" className="submit-button">Submit Ticket</button>
+        </div>
+
+        <div className="form-section">
+          <div className="form-row">
+            <div className="form-group">
+              <label htmlFor="priority">Priority</label>
+              <select
+                id="priority"
+                name="priority"
+                value={formData.priority}
+                onChange={handleChange}
+                required
+                className="form-input"
+              >
+                <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high">High</option>
+                <option value="critical">Critical</option>
+              </select>
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="category">Category</label>
+              <select
+                id="category"
+                name="category"
+                value={formData.category}
+                onChange={handleChange}
+                required
+                className="form-input"
+              >
+                <option value="">Select a category</option>
+                <option value="Hardware">Hardware</option>
+                <option value="Software">Software</option>
+                <option value="Network">Network</option>
+                <option value="Account">Account</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
           </div>
-        </form>
-      </div>
+        </div>
+
+        <div className="form-section">
+          <div className="form-group">
+            <label htmlFor="attachments">Attachments</label>
+            <input
+              type="file"
+              id="attachments"
+              multiple
+              onChange={handleFileChange}
+              className="file-input"
+            />
+            {formData.attachments.length > 0 && (
+              <div className="attachments-list">
+                {formData.attachments.map((file, index) => (
+                  <div key={index} className="attachment-item">
+                    <span className="file-name">{file.name}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="form-actions">
+          <button type="submit" className="submit-button" disabled={loading}>
+            {loading ? 'Creating...' : 'Create Ticket'}
+          </button>
+        </div>
+      </form>
     </div>
   );
-}
+};
 
 export default CreateTicket;

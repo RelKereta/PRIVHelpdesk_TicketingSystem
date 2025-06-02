@@ -118,35 +118,31 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
-  padding-bottom: 15px;
-  border-bottom: 2px solid #007bff;
+  margin-bottom: 24px;
 }
 
 .section-header h3 {
+  margin: 0;
   color: #333;
   font-size: 1.2rem;
-  margin: 0;
-  font-weight: 600;
 }
 
 .edit-btn, .save-btn, .cancel-btn {
   padding: 8px 16px;
-  border: none;
   border-radius: 4px;
-  font-size: 0.85rem;
-  font-weight: 500;
+  font-size: 0.9rem;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .edit-btn {
-  background-color: #007bff;
+  background: #007bff;
   color: white;
+  border: none;
 }
 
 .edit-btn:hover {
-  background-color: #0056b3;
+  background: #0056b3;
 }
 
 .edit-actions {
@@ -155,24 +151,25 @@
 }
 
 .save-btn {
-  background-color: #28a745;
+  background: #28a745;
   color: white;
+  border: none;
 }
 
 .save-btn:hover {
-  background-color: #1e7e34;
+  background: #218838;
 }
 
 .cancel-btn {
-  background-color: #6c757d;
-  color: white;
+  background: #f8f9fa;
+  color: #666;
+  border: 1px solid #ddd;
 }
 
 .cancel-btn:hover {
-  background-color: #545b62;
+  background: #e9ecef;
 }
 
-/* Profile Form */
 .profile-form {
   display: flex;
   flex-direction: column;
@@ -196,32 +193,21 @@
 }
 
 .form-group label {
-  font-weight: 500;
-  color: #333;
-  font-size: 0.9rem;
-}
-
-.form-value {
   color: #666;
-  margin: 0;
-  padding: 8px 0;
-  font-size: 0.95rem;
-  line-height: 1.4;
+  font-size: 0.9rem;
 }
 
 .form-input, .form-textarea {
-  padding: 10px 12px;
+  padding: 8px 12px;
   border: 1px solid #ddd;
   border-radius: 4px;
-  font-size: 0.9rem;
-  color: #333;
+  font-size: 0.95rem;
   transition: border-color 0.2s ease;
 }
 
 .form-input:focus, .form-textarea:focus {
-  outline: none;
   border-color: #007bff;
-  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+  outline: none;
 }
 
 .form-textarea {
@@ -229,23 +215,25 @@
   min-height: 80px;
 }
 
-/* Profile Statistics Section */
+.form-value {
+  margin: 0;
+  color: #333;
+  font-size: 0.95rem;
+}
+
+/* Statistics Section */
 .profile-stats-section {
   grid-column: 1 / -1;
   background: white;
   border-radius: 8px;
   padding: 24px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  margin-top: 10px;
 }
 
 .profile-stats-section h3 {
+  margin: 0 0 20px 0;
   color: #333;
   font-size: 1.2rem;
-  margin-bottom: 20px;
-  font-weight: 600;
-  border-bottom: 2px solid #007bff;
-  padding-bottom: 8px;
 }
 
 .stats-grid {
@@ -256,90 +244,58 @@
 
 .stat-card {
   background: #f8f9fa;
-  border: 1px solid #e9ecef;
   border-radius: 6px;
   padding: 20px;
   text-align: center;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.stat-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .stat-number {
-  font-size: 2rem;
-  font-weight: 700;
+  font-size: 1.8rem;
+  font-weight: 600;
   color: #007bff;
-  margin-bottom: 5px;
+  margin-bottom: 8px;
 }
 
 .stat-label {
-  font-size: 0.85rem;
   color: #666;
-  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+/* Loading and Error States */
+.loading-state, .error-state, .not-found-state {
+  text-align: center;
+  padding: 40px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  color: #666;
+}
+
+.error-state {
+  color: #dc3545;
 }
 
 /* Responsive Design */
 @media (max-width: 768px) {
-  .profile-page {
-    padding: 15px;
-  }
-  
   .profile-container {
     grid-template-columns: 1fr;
-    gap: 20px;
   }
-  
-  .profile-avatar-section {
-    order: 1;
-  }
-  
-  .profile-info-section {
-    order: 2;
-    padding: 20px;
-  }
-  
-  .profile-stats-section {
-    order: 3;
-    padding: 20px;
-  }
-  
+
   .form-row {
     grid-template-columns: 1fr;
-    gap: 15px;
   }
-  
-  .section-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 15px;
-  }
-  
-  .edit-actions {
-    width: 100%;
-    justify-content: stretch;
-  }
-  
-  .save-btn, .cancel-btn {
-    flex: 1;
-  }
-  
+
   .stats-grid {
     grid-template-columns: repeat(2, 1fr);
-    gap: 15px;
-  }
-  
-  .avatar-circle {
-    width: 100px;
-    height: 100px;
-    font-size: 2rem;
   }
 }
 
 @media (max-width: 480px) {
   .stats-grid {
     grid-template-columns: 1fr;
+  }
+
+  .edit-actions {
+    flex-direction: column;
   }
 } 

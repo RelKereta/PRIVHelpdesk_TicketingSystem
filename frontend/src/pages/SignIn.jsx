@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { authService } from '../services/api';
 import './SignIn.css';
 import eyeClosed from "../assets/eye00.png";
 import eyeOpen from "../assets/eye01.png";
@@ -11,17 +11,28 @@ const SignIn = () => {
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
-  const { signIn } = useAuth();
+
+  useEffect(() => {
+    // Check if user is already logged in
+    const user = JSON.parse(localStorage.getItem('user'));
+    if (user) {
+      navigate('/dashboard');
+    }
+  }, [navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
 
-    const result = await signIn(email, password);
-    if (result.success) {
-      navigate('/dashboard'); // This should match your dashboard route in App.jsx
-    } else {
-      setError(result.error || 'Failed to sign in');
+    try {
+      const response = await authService.login({ email, password });
+      // Only store the complete user object
+      localStorage.setItem('user', JSON.stringify(response.user));
+      
+      navigate('/dashboard');
+    } catch (err) {
+      console.error('Sign in error:', err);
+      setError(err.response?.data?.message || 'Failed to sign in');
     }
   };
 

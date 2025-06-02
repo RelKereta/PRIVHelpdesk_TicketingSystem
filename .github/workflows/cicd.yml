@@ -1,0 +1,70 @@
+name: PRIV CI/CD
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - "README.md"
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  continuous-integration:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Login to Docker Hub
+        run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build and Push Backend Image
+        run: |
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/priv-helpdesk-backend:latest ./backend/server
+          docker push ${{ secrets.DOCKER_USERNAME }}/priv-helpdesk-backend:latest
+
+      - name: Build and Push Frontend Image
+        run: |
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/priv-helpdesk-frontend:latest ./frontend
+          docker push ${{ secrets.DOCKER_USERNAME }}/priv-helpdesk-frontend:latest
+
+  continuous-deployment:
+    needs: continuous-integration
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Docker Rootless Environment
+        run: |
+          echo "Setting up Docker rootless env..."
+          echo "export PATH=$HOME/bin:$PATH" >> $GITHUB_ENV
+          echo "export DOCKER_HOST=unix://$XDG_RUNTIME_DIR/docker.sock" >> $GITHUB_ENV
+
+      - name: Login to Docker Hub
+        run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Pull Latest Backend Image
+        run: docker pull ${{ secrets.DOCKER_USERNAME }}/priv-helpdesk-backend:latest
+
+      - name: Pull Latest Frontend Image
+        run: docker pull ${{ secrets.DOCKER_USERNAME }}/priv-helpdesk-frontend:latest
+
+      - name: Stop and Remove Old Containers
+        run: |
+          docker compose down || true
+          docker system prune -f
+
+      - name: Run New Containers
+        run: |
+          docker compose up -d
+        env:
+          PORT: ${{ secrets.PORT }}
+          MONGO_URI: ${{ secrets.MONGO_URI }}
+          REFRESH_TOKEN_SECRET: ${{ secrets.REFRESH_TOKEN_SECRET }}
+          FRONTEND_URL: ${{ secrets.FRONTEND_URL }}
+          

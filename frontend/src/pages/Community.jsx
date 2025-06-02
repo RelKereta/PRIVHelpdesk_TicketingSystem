@@ -1,87 +1,75 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { ticketService } from '../services/api';
 import './Community.css';
 
 function Community() {
   const [selectedDepartment, setSelectedDepartment] = useState('all');
   const [selectedStatus, setSelectedStatus] = useState('all');
+  const [tickets, setTickets] = useState([]);
+  const [filteredTickets, setFilteredTickets] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
-  // Mock data for department tickets
-  const departmentTickets = [
-    {
-      id: 'TKT-001',
-      title: 'Software License Renewal',
-      department: 'IT',
-      assignee: 'John Smith',
-      status: 'In Progress',
-      priority: 'Medium',
-      created: '2024-01-15',
-      lastUpdate: '2024-01-16'
-    },
-    {
-      id: 'TKT-002',
-      title: 'Marketing Campaign Assets',
-      department: 'Marketing',
-      assignee: 'Sarah Johnson',
-      status: 'Open',
-      priority: 'High',
-      created: '2024-01-14',
-      lastUpdate: '2024-01-14'
-    },
-    {
-      id: 'TKT-003',
-      title: 'Payroll System Update',
-      department: 'HR',
-      assignee: 'Mike Chen',
-      status: 'Resolved',
-      priority: 'High',
-      created: '2024-01-12',
-      lastUpdate: '2024-01-15'
-    },
-    {
-      id: 'TKT-004',
-      title: 'Office Equipment Request',
-      department: 'Operations',
-      assignee: 'Lisa Wang',
-      status: 'Open',
-      priority: 'Low',
-      created: '2024-01-13',
-      lastUpdate: '2024-01-13'
-    },
-    {
-      id: 'TKT-005',
-      title: 'Customer Database Backup',
-      department: 'IT',
-      assignee: 'David Brown',
-      status: 'In Progress',
-      priority: 'Critical',
-      created: '2024-01-11',
-      lastUpdate: '2024-01-16'
-    },
-    {
-      id: 'TKT-006',
-      title: 'Training Material Development',
-      department: 'HR',
-      assignee: 'Emily Davis',
-      status: 'Open',
-      priority: 'Medium',
-      created: '2024-01-10',
-      lastUpdate: '2024-01-10'
+  // Default departments that should always be shown
+  const defaultDepartments = ['IT', 'HR', 'Finance', 'Marketing', 'Operations', 'Sales', 'Legal', 'Customer Support'];
+
+  useEffect(() => {
+    fetchTickets();
+  }, []);
+
+  useEffect(() => {
+    applyFilters();
+  }, [tickets, selectedDepartment, selectedStatus]);
+
+  const fetchTickets = async () => {
+    try {
+      setLoading(true);
+      const data = await ticketService.getTickets();
+      setTickets(data);
+    } catch (err) {
+      setError('Failed to fetch tickets');
+      console.error(err);
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
 
-  const departments = ['all', 'IT', 'Marketing', 'HR', 'Operations', 'Finance', 'Sales'];
+  const applyFilters = () => {
+    let filtered = [...tickets];
+
+    // Apply department filter
+    if (selectedDepartment !== 'all') {
+      filtered = filtered.filter(ticket => 
+        ticket.requester && ticket.requester.department === selectedDepartment
+      );
+    }
+
+    // Apply status filter
+    if (selectedStatus !== 'all') {
+      filtered = filtered.filter(ticket => ticket.status === selectedStatus);
+    }
+
+    setFilteredTickets(filtered);
+  };
+
+  // Get all unique departments from tickets + default departments
+  const getAllDepartments = () => {
+    const ticketDepartments = [...new Set(tickets.map(ticket => 
+      ticket.requester?.department
+    ).filter(Boolean))];
+    
+    // Combine default departments with departments found in tickets
+    const allDepartments = [...new Set([...defaultDepartments, ...ticketDepartments])];
+    return ['all', ...allDepartments.sort()];
+  };
+
+  const departments = getAllDepartments();
   const statuses = ['all', 'Open', 'In Progress', 'Resolved', 'Closed'];
-
-  const filteredTickets = departmentTickets.filter(ticket => {
-    const matchesDepartment = selectedDepartment === 'all' || ticket.department === selectedDepartment;
-    const matchesStatus = selectedStatus === 'all' || ticket.status === selectedStatus;
-    return matchesDepartment && matchesStatus;
-  });
 
   const getStatusColor = (status) => {
     switch (status) {
       case 'Open': return '#dc3545';
-      case 'In Progress': return '#ffc107';
+      case 'In Progress': return '#007bff';
       case 'Resolved': return '#28a745';
       case 'Closed': return '#6c757d';
       default: return '#007bff';
@@ -102,21 +90,85 @@ function Community() {
     return new Date(dateString).toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
-      year: 'numeric'
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
     });
   };
 
-  // Calculate department statistics
-  const departmentStats = departments.slice(1).map(dept => {
-    const deptTickets = departmentTickets.filter(ticket => ticket.department === dept);
-    return {
-      name: dept,
-      total: deptTickets.length,
-      open: deptTickets.filter(t => t.status === 'Open').length,
-      inProgress: deptTickets.filter(t => t.status === 'In Progress').length,
-      resolved: deptTickets.filter(t => t.status === 'Resolved').length
-    };
-  });
+  // Calculate comprehensive department statistics
+  const calculateDepartmentStats = () => {
+    return departments.slice(1).map(dept => {
+      const deptTickets = tickets.filter(ticket => 
+        ticket.requester?.department === dept
+      );
+      
+      // Calculate various metrics for each department
+      const stats = {
+        name: dept,
+        total: deptTickets.length,
+        open: deptTickets.filter(t => t.status === 'Open').length,
+        inProgress: deptTickets.filter(t => t.status === 'In Progress').length,
+        resolved: deptTickets.filter(t => t.status === 'Resolved').length,
+        closed: deptTickets.filter(t => t.status === 'Closed').length,
+        // Priority breakdown
+        critical: deptTickets.filter(t => t.priority === 'Critical').length,
+        high: deptTickets.filter(t => t.priority === 'High').length,
+        medium: deptTickets.filter(t => t.priority === 'Medium').length,
+        low: deptTickets.filter(t => t.priority === 'Low').length,
+        // Performance metrics
+        resolutionRate: 0,
+        avgResolutionTime: 0,
+        overdue: 0
+      };
+
+      // Calculate resolution rate
+      const resolvedAndClosed = stats.resolved + stats.closed;
+      stats.resolutionRate = stats.total > 0 ? Math.round((resolvedAndClosed / stats.total) * 100) : 0;
+
+      // Calculate average resolution time (in hours)
+      const resolvedTickets = deptTickets.filter(t => 
+        (t.status === 'Resolved' || t.status === 'Closed') && t.resolvedAt
+      );
+      
+      if (resolvedTickets.length > 0) {
+        const totalResolutionTime = resolvedTickets.reduce((sum, ticket) => {
+          const created = new Date(ticket.createdAt);
+          const resolved = new Date(ticket.resolvedAt);
+          return sum + (resolved - created);
+        }, 0);
+        stats.avgResolutionTime = Math.round(totalResolutionTime / resolvedTickets.length / (1000 * 60 * 60));
+      }
+
+      // Calculate overdue tickets
+      stats.overdue = deptTickets.filter(t => 
+        t.slaDeadline && 
+        new Date(t.slaDeadline) < new Date() && 
+        t.status !== 'Resolved' && 
+        t.status !== 'Closed'
+      ).length;
+
+      return stats;
+    }).filter(dept => dept.total > 0 || defaultDepartments.includes(dept.name)); // Show department if it has tickets or is a default department
+  };
+
+  const departmentStats = calculateDepartmentStats();
+
+  if (loading) {
+    return (
+      <div className="loading-spinner">
+        <div className="spinner"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="error-message">
+        {error}
+      </div>
+    );
+  }
 
   return (
     <div className="community-page">
@@ -128,10 +180,39 @@ function Community() {
       {/* Department Statistics */}
       <div className="department-stats">
         <h2>Department Overview</h2>
+        <div className="stats-summary">
+          <div className="summary-card">
+            <h3>Total Departments</h3>
+            <span className="summary-number">{departmentStats.length}</span>
+          </div>
+          <div className="summary-card">
+            <h3>Total Tickets</h3>
+            <span className="summary-number">{tickets.length}</span>
+          </div>
+          <div className="summary-card">
+            <h3>Active Departments</h3>
+            <span className="summary-number">{departmentStats.filter(d => d.total > 0).length}</span>
+          </div>
+          <div className="summary-card">
+            <h3>Avg Resolution Rate</h3>
+            <span className="summary-number">
+              {departmentStats.length > 0 ? 
+                Math.round(departmentStats.reduce((sum, d) => sum + d.resolutionRate, 0) / departmentStats.filter(d => d.total > 0).length) || 0
+                : 0}%
+            </span>
+          </div>
+        </div>
+        
         <div className="stats-grid">
           {departmentStats.map(dept => (
-            <div key={dept.name} className="dept-stat-card">
-              <h3>{dept.name}</h3>
+            <div key={dept.name} className={`dept-stat-card ${dept.total === 0 ? 'no-tickets' : ''}`}>
+              <div className="dept-header">
+                <h3>{dept.name}</h3>
+                {dept.overdue > 0 && (
+                  <span className="overdue-badge">⚠️ {dept.overdue} overdue</span>
+                )}
+              </div>
+              
               <div className="stat-numbers">
                 <div className="stat-item">
                   <span className="number">{dept.total}</span>
@@ -150,6 +231,38 @@ function Community() {
                   <span className="label">Resolved</span>
                 </div>
               </div>
+
+              {dept.total > 0 && (
+                <div className="dept-metrics">
+                  <div className="metric-row">
+                    <span className="metric-label">Resolution Rate:</span>
+                    <span className={`metric-value ${dept.resolutionRate >= 80 ? 'good' : dept.resolutionRate >= 60 ? 'average' : 'poor'}`}>
+                      {dept.resolutionRate}%
+                    </span>
+                  </div>
+                  {dept.avgResolutionTime > 0 && (
+                    <div className="metric-row">
+                      <span className="metric-label">Avg Resolution:</span>
+                      <span className="metric-value">{dept.avgResolutionTime}h</span>
+                    </div>
+                  )}
+                  <div className="priority-breakdown">
+                    <span className="breakdown-label">Priority Mix:</span>
+                    <div className="priority-bars">
+                      {dept.critical > 0 && <span className="priority-bar critical" title={`${dept.critical} Critical`}></span>}
+                      {dept.high > 0 && <span className="priority-bar high" title={`${dept.high} High`}></span>}
+                      {dept.medium > 0 && <span className="priority-bar medium" title={`${dept.medium} Medium`}></span>}
+                      {dept.low > 0 && <span className="priority-bar low" title={`${dept.low} Low`}></span>}
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              {dept.total === 0 && (
+                <div className="no-tickets-message">
+                  <span>No tickets yet</span>
+                </div>
+              )}
             </div>
           ))}
         </div>
@@ -189,7 +302,7 @@ function Community() {
 
       {/* Results Counter */}
       <div className="results-info">
-        <span>Showing {filteredTickets.length} of {departmentTickets.length} tickets</span>
+        <span>Showing {filteredTickets.length} of {tickets.length} tickets</span>
       </div>
 
       {/* Tickets Table */}
@@ -202,15 +315,22 @@ function Community() {
             <div className="header-cell">Assignee</div>
             <div className="header-cell">Status</div>
             <div className="header-cell">Priority</div>
-            <div className="header-cell">Last Update</div>
+            <div className="header-cell">Requester</div>
+            <div className="header-cell">Created</div>
+            <div className="header-cell">Actions</div>
           </div>
           
           {filteredTickets.map(ticket => (
-            <div key={ticket.id} className="table-row">
-              <div className="table-cell ticket-id">{ticket.id}</div>
+            <div key={ticket._id} className="table-row">
+              <div className="table-cell ticket-id">{ticket.ticketNumber}</div>
               <div className="table-cell ticket-title">{ticket.title}</div>
-              <div className="table-cell department">{ticket.department}</div>
-              <div className="table-cell assignee">{ticket.assignee}</div>
+              <div className="table-cell department">{ticket.requester?.department || 'N/A'}</div>
+              <div className="table-cell assignee">
+                {ticket.assignee ? 
+                  `${ticket.assignee.username}` : 
+                  'Unassigned'
+                }
+              </div>
               <div className="table-cell">
                 <span 
                   className="status-badge"
@@ -227,7 +347,16 @@ function Community() {
                   {ticket.priority}
                 </span>
               </div>
-              <div className="table-cell last-update">{formatDate(ticket.lastUpdate)}</div>
+              <div className="table-cell requester">{ticket.requester?.username || 'Unknown'}</div>
+              <div className="table-cell created">{formatDate(ticket.createdAt)}</div>
+              <div className="table-cell actions">
+                <button 
+                  className="btn-sm btn-primary"
+                  onClick={() => window.location.href = `/tickets/${ticket._id}/edit`}
+                >
+                  View
+                </button>
+              </div>
             </div>
           ))}
         </div>

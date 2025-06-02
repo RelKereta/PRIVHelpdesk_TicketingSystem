@@ -1,33 +1,51 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { userService } from '../services/api';
 import './Profile.css';
 
 function Profile() {
   const [isEditing, setIsEditing] = useState(false);
-  const [profile, setProfile] = useState({
-    firstName: 'Random',
-    lastName: 'Name',
-    email: 'random.name@priv.com',
-    position: 'Senior Creative Director',
-    department: 'Design',
-    phone: '+62 812-3456-7890',
-    bio: 'Experienced creative director with 8+ years in the industry. Passionate about innovative design solutions and leading high-performing teams.',
-    location: 'Jakarta, Indonesia',
-    joinDate: '2020-03-15',
-    avatar: null
-  });
+  const [profile, setProfile] = useState(null);
+  const [editedProfile, setEditedProfile] = useState(null);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
-  const [editedProfile, setEditedProfile] = useState(profile);
+  useEffect(() => {
+    fetchProfile();
+  }, []);
+
+  const fetchProfile = async () => {
+    try {
+      const user = JSON.parse(localStorage.getItem('user'));
+      if (!user) {
+        navigate('/signin');
+        return;
+      }
+      setProfile(user);
+      setEditedProfile(user);
+    } catch (err) {
+      setError('Failed to load profile');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleEdit = () => {
     setIsEditing(true);
-    setEditedProfile(profile);
+    setEditedProfile({ ...profile });
   };
 
-  const handleSave = () => {
-    setProfile(editedProfile);
-    setIsEditing(false);
-    // Here you would typically save to backend
-    alert('Profile updated successfully!');
+  const handleSave = async () => {
+    try {
+      const updatedUser = await userService.updateUser(profile._id, editedProfile);
+      setProfile(updatedUser);
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+      setIsEditing(false);
+      alert('Profile updated successfully!');
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to update profile');
+    }
   };
 
   const handleCancel = () => {
@@ -50,6 +68,10 @@ function Profile() {
     });
   };
 
+  if (loading) return <div className="loading-state">Loading profile...</div>;
+  if (error) return <div className="error-state">{error}</div>;
+  if (!profile) return <div className="not-found-state">Profile not found</div>;
+
   return (
     <div className="profile-page">
       <div className="profile-header">
@@ -62,8 +84,8 @@ function Profile() {
         <div className="profile-avatar-section">
           <div className="avatar-container">
             <div className="avatar-circle">
-              {profile.avatar ? (
-                <img src={profile.avatar} alt="Profile" />
+              {profile.profilePicture ? (
+                <img src={profile.profilePicture} alt="Profile" />
               ) : (
                 <span className="avatar-initials">
                   {profile.firstName[0]}{profile.lastName[0]}
@@ -147,35 +169,6 @@ function Profile() {
                 )}
               </div>
               <div className="form-group">
-                <label>Phone</label>
-                {isEditing ? (
-                  <input
-                    type="tel"
-                    value={editedProfile.phone}
-                    onChange={(e) => handleInputChange('phone', e.target.value)}
-                    className="form-input"
-                  />
-                ) : (
-                  <p className="form-value">{profile.phone}</p>
-                )}
-              </div>
-            </div>
-
-            <div className="form-row">
-              <div className="form-group">
-                <label>Position</label>
-                {isEditing ? (
-                  <input
-                    type="text"
-                    value={editedProfile.position}
-                    onChange={(e) => handleInputChange('position', e.target.value)}
-                    className="form-input"
-                  />
-                ) : (
-                  <p className="form-value">{profile.position}</p>
-                )}
-              </div>
-              <div className="form-group">
                 <label>Department</label>
                 {isEditing ? (
                   <select
@@ -183,12 +176,13 @@ function Profile() {
                     onChange={(e) => handleInputChange('department', e.target.value)}
                     className="form-input"
                   >
-                    <option value="Design">Design</option>
-                    <option value="Engineering">Engineering</option>
+                    <option value="IT">IT</option>
+                    <option value="HR">HR</option>
+                    <option value="Finance">Finance</option>
+                    <option value="Operations">Operations</option>
                     <option value="Marketing">Marketing</option>
                     <option value="Sales">Sales</option>
-                    <option value="Support">Support</option>
-                    <option value="HR">Human Resources</option>
+                    <option value="Other">Other</option>
                   </select>
                 ) : (
                   <p className="form-value">{profile.department}</p>
@@ -197,30 +191,17 @@ function Profile() {
             </div>
 
             <div className="form-group full-width">
-              <label>Location</label>
-              {isEditing ? (
-                <input
-                  type="text"
-                  value={editedProfile.location}
-                  onChange={(e) => handleInputChange('location', e.target.value)}
-                  className="form-input"
-                />
-              ) : (
-                <p className="form-value">{profile.location}</p>
-              )}
-            </div>
-
-            <div className="form-group full-width">
               <label>Bio</label>
               {isEditing ? (
                 <textarea
-                  value={editedProfile.bio}
+                  value={editedProfile.bio || ''}
                   onChange={(e) => handleInputChange('bio', e.target.value)}
                   className="form-textarea"
                   rows="3"
+                  placeholder="Tell us about yourself..."
                 />
               ) : (
-                <p className="form-value">{profile.bio}</p>
+                <p className="form-value">{profile.bio || 'No bio provided'}</p>
               )}
             </div>
 
@@ -236,20 +217,20 @@ function Profile() {
           <h3>Activity Statistics</h3>
           <div className="stats-grid">
             <div className="stat-card">
-              <div className="stat-number">24</div>
+              <div className="stat-number">{profile.createdTickets?.length || 0}</div>
               <div className="stat-label">Tickets Created</div>
             </div>
             <div className="stat-card">
-              <div className="stat-number">18</div>
-              <div className="stat-label">Tickets Resolved</div>
+              <div className="stat-number">{profile.assignedTickets?.length || 0}</div>
+              <div className="stat-label">Tickets Assigned</div>
             </div>
             <div className="stat-card">
-              <div className="stat-number">6</div>
-              <div className="stat-label">Active Tickets</div>
+              <div className="stat-number">{profile.role}</div>
+              <div className="stat-label">Role</div>
             </div>
             <div className="stat-card">
-              <div className="stat-number">4.8</div>
-              <div className="stat-label">Avg. Response (hrs)</div>
+              <div className="stat-number">{profile.department}</div>
+              <div className="stat-label">Department</div>
             </div>
           </div>
         </div>

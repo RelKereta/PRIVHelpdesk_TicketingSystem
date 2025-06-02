@@ -1,96 +1,159 @@
 /* Sidebar.css */
 .sidebar {
-  position: fixed; /* Keep the sidebar fixed on the screen */
-  top: 0;
+  position: fixed;
   left: 0;
-  height: 100vh; /* Use viewport height */
-  width: 250px; /* Default width when expanded */
-  background-color: #333;
-  transition: transform 0.3s ease-in-out; /* Smooth transition */
-  z-index: 1000; /* Lower than header and toggle button */
-  padding-top: 70px; /* Match header height */
-  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1); /* Add subtle shadow */
-}
-
-.sidebar.collapsed {
-  transform: translateX(-100%); /* Move sidebar completely off-screen when collapsed */
-}
-
-.sidebar-nav {
-  padding: 20px;
-  height: calc(100% - 70px);
+  top: 60px; /* Adjusted to match header height */
+  width: 250px;
+  height: calc(100vh - 60px);
+  background-color: #1a1a1a;
+  color: white;
+  padding: 0;
+  transition: all 0.3s ease;
+  z-index: 1000;
   overflow-y: auto;
 }
 
-.sidebar-nav a {
-  display: block;
-  color: white;
-  text-decoration: none;
-  margin: 10px 0;
-  padding: 12px 15px;
-  border-radius: 6px;
-  transition: background-color 0.2s ease;
+.sidebar.collapsed {
+  transform: translateX(-250px);
 }
 
-.sidebar-nav a:hover {
-  background-color: #444;
-}
-
-.sidebar-nav a.active {
-  background-color: #007bff;
-}
-
-/* Profile section styling */
+/* Profile Section */
 .profile-section {
   padding: 20px;
-  border-bottom: 1px solid #444;
-  margin-bottom: 10px;
+  background-color: #2a2a2a;
+  border-bottom: 1px solid #333;
 }
 
 .profile-pic {
   width: 50px;
   height: 50px;
   border-radius: 50%;
-  background-color: #007bff;
-  margin-bottom: 10px;
+  background-color: #3498db;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  font-weight: bold;
+  margin: 0 auto 10px;
+}
+
+.profile-info {
+  text-align: center;
 }
 
 .profile-info h3 {
-  color: white;
-  margin: 0 0 5px 0;
-  font-size: 1rem;
+  margin: 0;
+  font-size: 16px;
+  color: #fff;
 }
 
 .profile-info p {
+  margin: 5px 0;
+  font-size: 12px;
   color: #ccc;
-  margin: 0;
-  font-size: 0.8rem;
 }
 
-.main-content {
-  margin-left: 250px; /* Default margin when sidebar is expanded */
-  padding: 20px;
+.role-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 500;
 }
 
+.role-badge.role-admin {
+  background-color: #e74c3c;
+}
+
+.role-badge.role-technician {
+  background-color: #f39c12;
+}
+
+.role-badge.role-user {
+  background-color: #27ae60;
+}
+
+/* Navigation */
+.sidebar-nav {
+  padding: 15px 0;
+}
+
+.nav-section {
+  margin-bottom: 20px;
+}
+
+.nav-section h4 {
+  padding: 0 20px;
+  margin: 0 0 10px 0;
+  font-size: 12px;
+  text-transform: uppercase;
+  color: #666;
+  letter-spacing: 1px;
+}
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  padding: 12px 20px;
+  color: #fff;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  font-size: 14px;
+}
+
+.nav-link:hover {
+  background-color: #2a2a2a;
+  color: #3498db;
+}
+
+.nav-link.active {
+  background-color: #2a2a2a;
+  color: #3498db;
+  border-left: 3px solid #3498db;
+}
+
+.nav-icon {
+  margin-right: 10px;
+  width: 20px;
+  text-align: center;
+}
+
+/* Admin-specific styling */
+.admin-link {
+  color: #9b59b6;
+}
+
+.admin-link:hover,
+.admin-link.active {
+  background-color: #2a2a2a;
+  color: #9b59b6;
+}
+
+/* Responsive Design */
 @media (max-width: 768px) {
   .sidebar {
-    width: 280px; /* Slightly wider on mobile for better touch targets */
-    z-index: 1002; /* Higher z-index on mobile to overlay content */
+    width: 100%;
+    transform: translateX(-100%);
   }
-  
-  /* Add overlay effect on mobile when sidebar is open */
-  .sidebar:not(.collapsed)::before {
-    content: '';
-    position: fixed;
-    top: 0;
-    left: 280px;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.5);
-    z-index: -1;
+
+  .sidebar.collapsed {
+    transform: translateX(0);
   }
-  
-  .main-content {
-    margin-left: 0; /* No margin on mobile when sidebar is collapsed */
-  }
+}
+
+/* Scrollbar styling */
+.sidebar::-webkit-scrollbar {
+  width: 4px;
+}
+
+.sidebar::-webkit-scrollbar-track {
+  background: #1a1a1a;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+  background: #333;
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover {
+  background: #444;
 }

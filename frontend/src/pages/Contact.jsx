@@ -20,8 +20,21 @@ function Contact() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Here you would typically send the form data to your backend
-    alert('Your message has been sent! We will get back to you soon.');
+    
+    // Create email content
+    const emailSubject = encodeURIComponent(`Contact Form: ${formData.subject}`);
+    const emailBody = encodeURIComponent(
+      `Name: ${formData.name}\n` +
+      `Email: ${formData.email}\n` +
+      `Urgency: ${formData.urgency}\n` +
+      `Subject: ${formData.subject}\n\n` +
+      `Message:\n${formData.message}`
+    );
+    
+    // Open default email client with pre-filled content
+    window.location.href = `mailto:farrell.arya@binus.ac.id?subject=${emailSubject}&body=${emailBody}`;
+    
+    // Reset form after opening email client
     setFormData({
       name: '',
       email: '',
@@ -58,19 +71,9 @@ function Contact() {
               <div className="method-icon">📧</div>
               <div className="method-details">
                 <h3>Email Support</h3>
-                <p className="primary-contact">support@privhelpdesk.com</p>
+                <p className="primary-contact">farrell.arya@binus.ac.id</p>
                 <p className="hours">Response within 24 hours</p>
                 <p className="hours">Priority tickets: 4 hours</p>
-              </div>
-            </div>
-
-            <div className="contact-method">
-              <div className="method-icon">💬</div>
-              <div className="method-details">
-                <h3>Live Chat</h3>
-                <p className="primary-contact">Available in-app</p>
-                <p className="hours">Monday - Friday: 9:00 AM - 5:00 PM</p>
-                <p className="hours">Average response: 5 minutes</p>
               </div>
             </div>
 
@@ -89,9 +92,11 @@ function Contact() {
             <h3>Office Location</h3>
             <div className="address">
               <p>PRIV Helpdesk Solutions</p>
-              <p>123 Technology Drive, Suite 400</p>
-              <p>San Francisco, CA 94105</p>
-              <p>United States</p>
+              <p>Jl. Jenderal Sudirman, Gelora</p>
+              <p>Kecamatan Tanah Abang</p>
+              <p>Kota Jakarta Pusat</p>
+              <p>Daerah Khusus Ibukota Jakarta 10270</p>
+              <p>Indonesia</p>
             </div>
           </div>
         </div>
@@ -99,7 +104,7 @@ function Contact() {
         {/* Contact Form */}
         <div className="contact-form-section">
           <h2>Send us a Message</h2>
-          <p>For non-urgent inquiries, you can send us a message using the form below.</p>
+          <p>For non-urgent inquiries, you can send us a message using the form below. This will open your default email client to send a message to farrell.arya@binus.ac.id.</p>
           
           <form onSubmit={handleSubmit} className="contact-form">
             <div className="form-row">

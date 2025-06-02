@@ -1,0 +1,21 @@
+version: "3.8"
+
+services:
+  backend:
+    image: marputtt/priv-helpdesk-backend:latest
+    restart: always
+    environment:
+      PORT: 3000
+      MONGO_URI: ${MONGO_URI}
+      REFRESH_TOKEN_SECRET: ${REFRESH_TOKEN_SECRET}
+      FRONTEND_URL: ${FRONTEND_URL}
+    ports:
+      - "3014:3014"
+
+  frontend:
+    image: marputtt/priv-helpdesk-frontend:latest
+    restart: always
+    depends_on:
+      - backend
+    ports:
+      - "3013:3013"

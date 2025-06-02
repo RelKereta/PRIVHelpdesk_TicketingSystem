@@ -10,7 +10,7 @@ function Chatbot() {
   ]);
   const [inputText, setInputText] = useState('');
   const messagesEndRef = useRef(null);
-
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
@@ -50,6 +50,7 @@ function Chatbot() {
       <div className="chatbot-header">
         <h1>AI Technical Support</h1>
       </div>
+
 
       <div className="chatbot-messages">
         {messages.map((msg, i) => (

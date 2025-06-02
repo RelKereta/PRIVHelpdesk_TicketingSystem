@@ -1,200 +1,275 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { solutionService } from '../services/api';
 import './Solutions.css';
 
-function Solutions() {
+const Solutions = () => {
+  const [solutions, setSolutions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [showModal, setShowModal] = useState(false);
+  const [selectedSolution, setSelectedSolution] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedCategory, setSelectedCategory] = useState('');
+  const [formData, setFormData] = useState({
+    title: '',
+    description: '',
+    category: '',
+    content: ''
+  });
 
-  // Mock data for solved tickets and documentation
-  const solutions = [
-    {
-      id: 'SOL-001',
-      title: 'Login Issues Resolution Guide',
-      category: 'Authentication',
-      description: 'Step-by-step guide to resolve common login problems including password reset and account lockouts.',
-      resolution: 'Clear browser cache, reset password using company email, contact IT if domain issues persist.',
-      dateResolved: '2024-01-15',
-      resolvedBy: 'John Smith',
-      tags: ['login', 'password', 'authentication'],
-      helpfulVotes: 24
-    },
-    {
-      id: 'SOL-002',
-      title: 'Network Connectivity Problems',
-      category: 'Network',
-      description: 'Common network connectivity issues and their solutions for remote workers.',
-      resolution: 'Check Wi-Fi connection, restart router, verify VPN settings, run network diagnostics.',
-      dateResolved: '2024-01-10',
-      resolvedBy: 'Sarah Johnson',
-      tags: ['network', 'wifi', 'vpn', 'remote'],
-      helpfulVotes: 18
-    },
-    {
-      id: 'SOL-003',
-      title: 'Software Installation Error Fix',
-      category: 'Software',
-      description: 'Resolving installation errors for company applications on Windows and Mac.',
-      resolution: 'Run as administrator, check system requirements, disable antivirus temporarily, clear temp files.',
-      dateResolved: '2024-01-08',
-      resolvedBy: 'Mike Chen',
-      tags: ['software', 'installation', 'windows', 'mac'],
-      helpfulVotes: 31
-    },
-    {
-      id: 'SOL-004',
-      title: 'Email Configuration Setup',
-      category: 'Email',
-      description: 'Complete guide for setting up company email on mobile devices and desktop clients.',
-      resolution: 'Use IMAP settings: server mail.company.com, port 993, SSL enabled, authenticate with company credentials.',
-      dateResolved: '2024-01-05',
-      resolvedBy: 'Lisa Wang',
-      tags: ['email', 'mobile', 'outlook', 'configuration'],
-      helpfulVotes: 27
-    },
-    {
-      id: 'SOL-005',
-      title: 'Printer Connection Issues',
-      category: 'Hardware',
-      description: 'Troubleshooting guide for connecting to office printers from various devices.',
-      resolution: 'Install printer drivers, check network connection, add printer via IP address, restart print spooler.',
-      dateResolved: '2024-01-03',
-      resolvedBy: 'David Brown',
-      tags: ['printer', 'hardware', 'drivers', 'network'],
-      helpfulVotes: 15
-    },
-    {
-      id: 'SOL-006',
-      title: 'File Sharing Permissions Error',
-      category: 'Access Control',
-      description: 'Resolving file sharing and permission errors on company shared drives.',
-      resolution: 'Contact domain admin to verify group membership, clear cached credentials, remount shared drive.',
-      dateResolved: '2024-01-01',
-      resolvedBy: 'Emily Davis',
-      tags: ['permissions', 'file-sharing', 'access', 'domain'],
-      helpfulVotes: 22
+  const user = JSON.parse(localStorage.getItem('user'));
+  const isAdminOrAgent = user?.role === 'admin' || user?.role === 'agent';
+
+  useEffect(() => {
+    fetchSolutions();
+  }, []);
+
+  const fetchSolutions = async () => {
+    try {
+      const response = await solutionService.getSolutions();
+      setSolutions(response);
+    } catch (error) {
+      setError('Failed to fetch solutions: ' + error.message);
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
 
-  const categories = ['all', 'Authentication', 'Network', 'Software', 'Email', 'Hardware', 'Access Control'];
+  const handleEdit = (solution) => {
+    setSelectedSolution(solution);
+    setFormData({
+      title: solution.title,
+      description: solution.description,
+      category: solution.category,
+      content: solution.content
+    });
+    setShowModal(true);
+  };
+
+  const handleDelete = async (solutionId) => {
+    if (window.confirm('Are you sure you want to delete this solution?')) {
+      try {
+        await solutionService.deleteSolution(solutionId);
+        setSolutions(solutions.filter(s => s._id !== solutionId));
+      } catch (error) {
+        const errorMessage = error.response?.data?.message || error.message || 'Failed to delete solution';
+        setError(errorMessage);
+        console.error('Error deleting solution:', error);
+      }
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      if (selectedSolution) {
+        const updated = await solutionService.updateSolution(selectedSolution._id, formData);
+        setSolutions(solutions.map(s => s._id === selectedSolution._id ? updated : s));
+      } else {
+        const newSolution = await solutionService.createSolution(formData);
+        setSolutions([newSolution, ...solutions]);
+      }
+      setShowModal(false);
+      setSelectedSolution(null);
+      setFormData({ title: '', description: '', category: '', content: '' });
+    } catch (error) {
+      const errorMessage = error.response?.data?.message || error.message || 'Failed to save solution';
+      setError(errorMessage);
+      console.error('Error saving solution:', error);
+    }
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
 
   const filteredSolutions = solutions.filter(solution => {
     const matchesSearch = solution.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         solution.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         solution.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
-    const matchesCategory = selectedCategory === 'all' || solution.category === selectedCategory;
+                         solution.description.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = !selectedCategory || solution.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
 
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
-  };
+  if (loading) {
+    return <div className="loading">Loading solutions...</div>;
+  }
+
+  const categories = ['Account Management', 'Network', 'Software', 'Hardware', 'Other'];
 
   return (
     <div className="solutions-page">
       <div className="solutions-header">
-        <h1>Solutions</h1>
-        <p>Browse our knowledge base of solved tickets and helpful documentation</p>
+        <h1>Knowledge Base Solutions</h1>
+        <p>Find answers to common questions and technical issues</p>
       </div>
 
-      {/* Search and Filter Section */}
+      {error && (
+        <div className="error-message">
+          {error}
+          <button onClick={() => setError('')}>×</button>
+        </div>
+      )}
+
       <div className="solutions-controls">
         <div className="search-container">
           <input
             type="text"
+            className="search-input"
             placeholder="Search solutions..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="search-input"
           />
         </div>
         <div className="filter-container">
           <select
+            className="category-filter"
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
-            className="category-filter"
           >
+            <option value="">All Categories</option>
             {categories.map(category => (
-              <option key={category} value={category}>
-                {category === 'all' ? 'All Categories' : category}
-              </option>
+              <option key={category} value={category}>{category}</option>
             ))}
           </select>
         </div>
+        {isAdminOrAgent && (
+          <button 
+            className="add-solution-btn"
+            onClick={() => {
+              setSelectedSolution(null);
+              setFormData({ title: '', description: '', category: '', content: '' });
+              setShowModal(true);
+            }}
+          >
+            Add New Solution
+          </button>
+        )}
       </div>
 
-      {/* Results Counter */}
       <div className="results-info">
-        <span>Showing {filteredSolutions.length} of {solutions.length} solutions</span>
+        Showing {filteredSolutions.length} solutions
       </div>
 
-      {/* Solutions Grid */}
-      <div className="solutions-grid">
-        {filteredSolutions.map(solution => (
-          <div key={solution.id} className="solution-card">
-            <div className="solution-header">
-              <div className="solution-id">{solution.id}</div>
-              <div className="solution-category">{solution.category}</div>
-            </div>
-            
-            <div className="solution-content">
-              <h3 className="solution-title">{solution.title}</h3>
-              <p className="solution-description">{solution.description}</p>
-              
-              <div className="solution-resolution">
-                <h4>Resolution:</h4>
-                <p>{solution.resolution}</p>
-              </div>
-              
-              <div className="solution-tags">
-                {solution.tags.map(tag => (
-                  <span key={tag} className="tag">#{tag}</span>
-                ))}
-              </div>
-            </div>
-            
-            <div className="solution-footer">
-              <div className="solution-meta">
-                <span>Resolved by {solution.resolvedBy}</span>
-                <span>{formatDate(solution.dateResolved)}</span>
-              </div>
-              <div className="solution-votes">
-                <button className="vote-btn">
-                  👍 {solution.helpfulVotes}
-                </button>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {filteredSolutions.length === 0 && (
+      {filteredSolutions.length === 0 ? (
         <div className="no-results">
           <h3>No solutions found</h3>
-          <p>Try adjusting your search terms or category filter.</p>
+          <p>Try adjusting your search or filters</p>
+        </div>
+      ) : (
+        <div className="solutions-grid">
+          {filteredSolutions.map(solution => (
+            <div key={solution._id} className="solution-card">
+              <div className="solution-header">
+                <span className="solution-category">{solution.category}</span>
+                {isAdminOrAgent && (
+                  <div className="solution-actions">
+                    <button 
+                      className="edit-btn"
+                      onClick={() => handleEdit(solution)}
+                    >
+                      Edit
+                    </button>
+                    <button 
+                      className="delete-btn"
+                      onClick={() => handleDelete(solution._id)}
+                    >
+                      Delete
+                    </button>
+                  </div>
+                )}
+              </div>
+              <div className="solution-content">
+                <h3>{solution.title}</h3>
+                <p className="solution-description">{solution.description}</p>
+              </div>
+              <div className="solution-footer">
+                <div className="solution-meta">
+                  <span>{solution.views} views</span>
+                  <span>Created {new Date(solution.createdAt).toLocaleDateString()}</span>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       )}
 
-      {/* Quick Stats */}
-      <div className="solutions-stats">
-        <div className="stat-item">
-          <div className="stat-number">{solutions.length}</div>
-          <div className="stat-label">Total Solutions</div>
+      {showModal && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h2>{selectedSolution ? 'Edit Solution' : 'Add New Solution'}</h2>
+              <button className="close-btn" onClick={() => setShowModal(false)}>&times;</button>
+            </div>
+            <form className="solution-form" onSubmit={handleSubmit}>
+              <div className="form-group">
+                <label htmlFor="title">Title</label>
+                <input
+                  type="text"
+                  id="title"
+                  name="title"
+                  value={formData.title}
+                  onChange={handleInputChange}
+                  className="form-input"
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="description">Description</label>
+                <input
+                  type="text"
+                  id="description"
+                  name="description"
+                  value={formData.description}
+                  onChange={handleInputChange}
+                  className="form-input"
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="category">Category</label>
+                <select
+                  id="category"
+                  name="category"
+                  value={formData.category}
+                  onChange={handleInputChange}
+                  className="form-input"
+                  required
+                >
+                  <option value="">Select a category</option>
+                  {categories.map(category => (
+                    <option key={category} value={category}>{category}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="form-group">
+                <label htmlFor="content">Content</label>
+                <textarea
+                  id="content"
+                  name="content"
+                  value={formData.content}
+                  onChange={handleInputChange}
+                  className="form-textarea"
+                  required
+                />
+              </div>
+              <div className="modal-actions">
+                <button type="button" className="cancel-btn" onClick={() => setShowModal(false)}>
+                  Cancel
+                </button>
+                <button type="submit" className="submit-btn">
+                  {selectedSolution ? 'Update' : 'Create'}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
-        <div className="stat-item">
-          <div className="stat-number">{categories.length - 1}</div>
-          <div className="stat-label">Categories</div>
-        </div>
-        <div className="stat-item">
-          <div className="stat-number">{solutions.reduce((sum, sol) => sum + sol.helpfulVotes, 0)}</div>
-          <div className="stat-label">Helpful Votes</div>
-        </div>
-      </div>
+      )}
     </div>
   );
-}
+};
 
 export default Solutions;
