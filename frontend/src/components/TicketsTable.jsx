@@ -21,6 +21,7 @@ const TicketsTable = () => {
         
         // Fetch tickets
         const response = await ticketService.getTickets();
+        console.log('Fetched tickets:', response);
         setTickets(response);
       } catch (err) {
         console.error('Tickets fetch error:', err);
@@ -109,7 +110,7 @@ const TicketsTable = () => {
                 <td>{new Date(ticket.createdAt).toLocaleDateString()}</td>
                 <td>{ticket.requester?.username || 'N/A'}</td>
                 {(user?.role === 'admin' || user?.role === 'agent') && (
-                  <td>{ticket.assignedTo?.username || 'Unassigned'}</td>
+                  <td>{ticket.assignee?.username || 'Unassigned'}</td>
                 )}
                 <td>
                   <Link to={`/tickets/${ticket._id}`} className="view-btn">View</Link>

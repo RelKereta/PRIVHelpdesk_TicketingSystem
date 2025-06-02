@@ -17,12 +17,21 @@ api.interceptors.request.use((config) => {
     config.headers['X-User-Id'] = user._id;
   }
   return config;
+}, (error) => {
+  console.error('Request interceptor error:', error);
+  return Promise.reject(error);
 });
 
 // Add response interceptor for error handling
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+    console.error('API Error:', {
+      status: error.response?.status,
+      data: error.response?.data,
+      message: error.message
+    });
+
     if (error.response?.status === 401) {
       // Handle unauthorized access
       localStorage.removeItem('user');
@@ -35,19 +44,29 @@ api.interceptors.response.use(
 // Auth services
 export const authService = {
   register: async (userData) => {
-    const response = await api.post('/users/register', userData);
-    if (response.data.user) {
-      localStorage.setItem('user', JSON.stringify(response.data.user));
+    try {
+      const response = await api.post('/users/register', userData);
+      if (response.data.user) {
+        localStorage.setItem('user', JSON.stringify(response.data.user));
+      }
+      return response.data;
+    } catch (error) {
+      console.error('Registration error:', error.response?.data || error.message);
+      throw error;
     }
-    return response.data;
   },
 
   login: async (credentials) => {
-    const response = await api.post('/users/login', credentials);
-    if (response.data.user) {
-      localStorage.setItem('user', JSON.stringify(response.data.user));
+    try {
+      const response = await api.post('/users/login', credentials);
+      if (response.data.user) {
+        localStorage.setItem('user', JSON.stringify(response.data.user));
+      }
+      return response.data;
+    } catch (error) {
+      console.error('Login error:', error.response?.data || error.message);
+      throw error;
     }
-    return response.data;
   },
 
   logout: () => {
@@ -55,11 +74,16 @@ export const authService = {
   },
 
   getCurrentUser: async () => {
-    const user = JSON.parse(localStorage.getItem('user'));
-    if (!user) {
-      throw new Error('No user found');
+    try {
+      const user = JSON.parse(localStorage.getItem('user'));
+      if (!user) {
+        throw new Error('No user found');
+      }
+      return user;
+    } catch (error) {
+      console.error('Get current user error:', error);
+      throw error;
     }
-    return user;
   }
 };
 
@@ -78,38 +102,73 @@ export const ticketService = {
   },
 
   getTickets: async (filters = {}) => {
-    const response = await api.get('/tickets', { params: filters });
-    return response.data;
+    try {
+      const response = await api.get('/tickets', { params: filters });
+      return response.data;
+    } catch (error) {
+      console.error('API: Error fetching tickets:', error.response?.data || error.message);
+      throw error;
+    }
   },
 
   getTicket: async (id) => {
-    const response = await api.get(`/tickets/${id}`);
-    return response.data;
+    try {
+      const response = await api.get(`/tickets/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error('API: Error fetching ticket:', error.response?.data || error.message);
+      throw error;
+    }
   },
 
   updateTicket: async (id, ticketData) => {
-    const response = await api.put(`/tickets/${id}`, ticketData);
-    return response.data;
+    try {
+      const response = await api.put(`/tickets/${id}`, ticketData);
+      return response.data;
+    } catch (error) {
+      console.error('API: Error updating ticket:', error.response?.data || error.message);
+      throw error;
+    }
   },
 
   addComment: async (ticketId, comment) => {
-    const response = await api.post(`/tickets/${ticketId}/comments`, { text: comment });
-    return response.data;
+    try {
+      const response = await api.post(`/tickets/${ticketId}/comments`, { text: comment });
+      return response.data;
+    } catch (error) {
+      console.error('API: Error adding comment:', error.response?.data || error.message);
+      throw error;
+    }
   },
 
   assignTicket: async (ticketId, assigneeId) => {
-    const response = await api.post(`/tickets/${ticketId}/assign`, { assigneeId });
-    return response.data;
+    try {
+      const response = await api.post(`/tickets/${ticketId}/assign`, { assigneeId });
+      return response.data;
+    } catch (error) {
+      console.error('API: Error assigning ticket:', error.response?.data || error.message);
+      throw error;
+    }
   },
 
   resolveTicket: async (ticketId, resolution) => {
-    const response = await api.post(`/tickets/${ticketId}/resolve`, { resolution });
-    return response.data;
+    try {
+      const response = await api.post(`/tickets/${ticketId}/resolve`, { resolution });
+      return response.data;
+    } catch (error) {
+      console.error('API: Error resolving ticket:', error.response?.data || error.message);
+      throw error;
+    }
   },
 
   deleteTicket: async (id) => {
-    const response = await api.delete(`/tickets/${id}`);
-    return response.data;
+    try {
+      const response = await api.delete(`/tickets/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error('API: Error deleting ticket:', error.response?.data || error.message);
+      throw error;
+    }
   }
 };
 

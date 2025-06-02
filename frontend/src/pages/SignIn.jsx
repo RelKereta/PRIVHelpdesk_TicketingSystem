@@ -33,7 +33,7 @@ const SignIn = () => {
 
     try {
       const response = await authService.login({ email, password });
-      localStorage.setItem('userId', response.user._id);
+      // Only store the complete user object
       localStorage.setItem('user', JSON.stringify(response.user));
       
       const role = response.user.role.toLowerCase();
@@ -45,6 +45,7 @@ const SignIn = () => {
         navigate('/dashboard');
       }
     } catch (err) {
+      console.error('Sign in error:', err);
       setError(err.response?.data?.message || 'Failed to sign in');
     }
   };

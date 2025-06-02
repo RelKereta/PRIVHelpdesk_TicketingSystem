@@ -15,6 +15,7 @@ import SignIn from './pages/SignIn';
 import SignUp from './pages/SignUp';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
+import TicketEdit from './pages/TicketEdit';
 
 const ProtectedRoute = ({ children, requiredPermission = null }) => {
   const user = JSON.parse(localStorage.getItem('user'));
@@ -72,6 +73,7 @@ function AppContent() {
           <Route path="/user-management" element={<ProtectedRoute requiredPermission="user_management"><UserManagement /></ProtectedRoute>} />
           <Route path="/chatbot" element={<ProtectedRoute><Chatbot /></ProtectedRoute>} />
           <Route path="/create-ticket" element={<ProtectedRoute><CreateTicket /></ProtectedRoute>} />
+          <Route path="/tickets/:id/edit" element={<ProtectedRoute requiredPermission="admin"><TicketEdit /></ProtectedRoute>} />
           <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
         </Routes>
       </div>
