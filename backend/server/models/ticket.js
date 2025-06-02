@@ -1,96 +1,157 @@
 // models/Ticket.js
 const mongoose = require('mongoose');
 
+const commentSchema = new mongoose.Schema({
+  text: {
+    type: String,
+    required: true
+  },
+  author: {
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true
+    },
+    username: {
+      type: String,
+      required: true
+    }
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now
+  }
+});
+
+const attachmentSchema = new mongoose.Schema({
+  filename: {
+    type: String,
+    required: true
+  },
+  originalName: {
+    type: String,
+    required: true
+  },
+  size: {
+    type: Number,
+    required: true
+  },
+  uploadedAt: {
+    type: Date,
+    default: Date.now
+  }
+});
+
 const ticketSchema = new mongoose.Schema({
   ticketNumber: {
     type: String,
-    unique: true,
-    required: true
+    unique: true
   },
-  subject: {
+  title: {
     type: String,
-    required: [true, 'Subject is required'],
+    required: true,
     trim: true
   },
   description: {
     type: String,
-    required: [true, 'Description is required'],
-    trim: true
+    required: true
+  },
+  category: {
+    type: String,
+    required: true,
+    enum: ['Hardware', 'Software', 'Network', 'Account', 'Other']
   },
   priority: {
     type: String,
+    required: true,
     enum: ['Low', 'Medium', 'High', 'Critical'],
     default: 'Medium'
   },
   status: {
     type: String,
-    enum: ['Open', 'In Progress', 'On Hold', 'Resolved', 'Closed'],
+    required: true,
+    enum: ['Open', 'In Progress', 'Resolved', 'Closed'],
     default: 'Open'
   },
-  type: {
-    type: String,
-    enum: ['Bug', 'Feature Request', 'Technical Issue', 'General Inquiry'],
-    required: true
+  // User who created the ticket
+  requester: {
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true
+    },
+    username: {
+      type: String,
+      required: true
+    },
+    email: {
+      type: String,
+      required: true
+    },
+    department: {
+      type: String,
+      required: true
+    }
   },
-  category: {
-    type: String,
-    enum: ['Hardware', 'Software', 'Network', 'Account', 'Other'],
-    required: true
-  },
-  assignedTo: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    default: null
-  },
-  createdBy: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
-  },
-  department: {
-    type: String,
-    required: true
-  },
-  attachments: [{
-    filename: String,
-    path: String,
-    uploadedAt: Date
-  }],
-  comments: [{
-    user: {
+  // Agent assigned to the ticket
+  assignee: {
+    userId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User'
     },
-    text: String,
-    createdAt: {
-      type: Date,
-      default: Date.now
+    username: {
+      type: String
     }
-  }],
-  createdAt: {
-    type: Date,
-    default: Date.now
   },
-  updatedAt: {
-    type: Date,
-    default: Date.now
+  comments: [commentSchema],
+  attachments: [attachmentSchema],
+  tags: [String],
+  slaDeadline: {
+    type: Date
   },
-  resolvedAt: Date,
-  dueDate: Date,
-  tags: [String]
+  resolvedAt: {
+    type: Date
+  },
+  resolution: {
+    type: String
+  }
 }, {
   timestamps: true
 });
 
 // Generate ticket number before saving
 ticketSchema.pre('save', async function(next) {
-  if (this.isNew) {
-    const count = await mongoose.model('Ticket').countDocuments();
-    this.ticketNumber = `TICKET-${String(count + 1).padStart(6, '0')}`;
+  if (this.isNew && !this.ticketNumber) {
+    try {
+      const count = await this.constructor.countDocuments();
+      this.ticketNumber = `TICKET-${String(count + 1).padStart(6, '0')}`;
+    } catch (error) {
+      return next(error);
+    }
   }
   next();
 });
 
-const Ticket = mongoose.model('Ticket', ticketSchema);
+// Set SLA deadline based on priority
+ticketSchema.pre('save', function(next) {
+  if (this.isNew) {
+    const now = new Date();
+    switch (this.priority) {
+      case 'Critical':
+        this.slaDeadline = new Date(now.getTime() + (4 * 60 * 60 * 1000)); // 4 hours
+        break;
+      case 'High':
+        this.slaDeadline = new Date(now.getTime() + (24 * 60 * 60 * 1000)); // 1 day
+        break;
+      case 'Medium':
+        this.slaDeadline = new Date(now.getTime() + (3 * 24 * 60 * 60 * 1000)); // 3 days
+        break;
+      case 'Low':
+        this.slaDeadline = new Date(now.getTime() + (7 * 24 * 60 * 60 * 1000)); // 7 days
+        break;
+    }
+  }
+  next();
+});
 
-module.exports = Ticket;
+module.exports = mongoose.model('Ticket', ticketSchema);

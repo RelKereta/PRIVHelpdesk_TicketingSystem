@@ -1,96 +1,140 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { NavLink } from 'react-router-dom';
 import './Sidebar.css';
 
-function Sidebar({ collapsed }) {
-  const { user, hasPermission } = useAuth();
+const Sidebar = ({ collapsed, onToggle }) => {
+  const user = JSON.parse(localStorage.getItem('user'));
+  const isAdmin = user?.role === 'admin';
+  const isAgent = user?.role === 'agent';
+  const isUser = user?.role === 'user';
+
+  const hasPermission = (permission) => {
+    if (!user) return false;
+    if (user.role === 'admin') return true;
+    if (permission === 'ticket_management' && (user.role === 'agent' || user.role === 'admin')) return true;
+    return false;
+  };
+
+  const getUserInitials = () => {
+    if (!user) return '';
+    return `${user.firstName[0]}${user.lastName[0]}`.toUpperCase();
+  };
+
+  const getRoleBadgeClass = () => {
+    switch (user?.role) {
+      case 'admin': return 'admin-badge';
+      case 'agent': return 'agent-badge';
+      default: return 'user-badge';
+    }
+  };
+
+  const getRoleDisplayName = () => {
+    switch (user?.role) {
+      case 'admin': return 'Administrator';
+      case 'agent': return 'Support Agent';
+      default: return 'User';
+    }
+  };
 
   return (
-    <div className={`sidebar ${collapsed ? 'collapsed' : ''}`}>
-      {!collapsed && (
-        <>
-          <div className="profile-section">
-            <div className="profile-pic">
-              {user?.name ? user.name.charAt(0).toUpperCase() : 'U'}
-            </div>
-            <div className="profile-info">
-              <h3>{user?.name || 'User'}</h3>
-              <p>{user?.position || 'Employee'}</p>
-              <span className={`role-badge role-${user?.role}`}>
-                {user?.role?.toUpperCase() || 'USER'}
-              </span>
-            </div>
+    <aside className={`sidebar ${collapsed ? 'collapsed' : ''}`}>
+      {/* Profile Section */}
+      <div className="profile-section">
+        <div className="profile-pic">
+          {getUserInitials()}
+        </div>
+        {!collapsed && (
+          <div className="profile-info">
+            <h3>{user?.firstName} {user?.lastName}</h3>
+            <p>{user?.email}</p>
+            <span className={`role-badge ${getRoleBadgeClass()}`}>
+              {getRoleDisplayName()}
+            </span>
           </div>
+        )}
+      </div>
+
+      {/* Navigation */}
+      <nav className="sidebar-nav">
+        {/* Main Section */}
+        <div className="nav-section">
+          {!collapsed && <h4>Main</h4>}
+          <NavLink to="/dashboard" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
+            <i className="nav-icon fas fa-home"></i>
+            {!collapsed && <span>Dashboard</span>}
+          </NavLink>
           
-          <nav className="sidebar-nav">
-            <div className="nav-section">
-              <h4>Main</h4>
-              <Link to="/dashboard" className="nav-link">
-                <span className="nav-icon">📊</span>
-                Dashboard
-              </Link>
-              <Link to="/create-ticket" className="nav-link">
-                <span className="nav-icon">🎫</span>
-                Create Ticket
-              </Link>
-              <Link to="/chatbot" className="nav-link">
-                <span className="nav-icon">🤖</span>
-                AI Support
-              </Link>
-            </div>
+          <NavLink to="/create-ticket" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
+            <i className="nav-icon fas fa-ticket-alt"></i>
+            {!collapsed && <span>Create Ticket</span>}
+          </NavLink>
+        </div>
 
-            <div className="nav-section">
-              <h4>Knowledge</h4>
-              <Link to="/solutions" className="nav-link">
-                <span className="nav-icon">💡</span>
-                Solutions
-              </Link>
-              <Link to="/resources" className="nav-link">
-                <span className="nav-icon">📚</span>
-                Resources
-              </Link>
-              <Link to="/community" className="nav-link">
-                <span className="nav-icon">👥</span>
-                Community
-              </Link>
-            </div>
+        {/* Tickets Section - Only for agents and admins */}
+        {(isAgent || isAdmin) && (
+          <div className="nav-section">
+            {!collapsed && <h4>Tickets</h4>}
+            <NavLink to="/tickets" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
+              <i className="nav-icon fas fa-list"></i>
+              {!collapsed && <span>All Tickets</span>}
+            </NavLink>
+            <NavLink to="/community" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
+              <i className="nav-icon fas fa-users"></i>
+              {!collapsed && <span>Community</span>}
+            </NavLink>
+          </div>
+        )}
 
-            {/* Admin-only section */}
-            {hasPermission('user_management') && (
-              <div className="nav-section">
-                <h4>Administration</h4>
-                <Link to="/user-management" className="nav-link admin-link">
-                  <span className="nav-icon">👨‍💼</span>
-                  User Management
-                </Link>
-              </div>
-            )}
+        {/* Administration Section - Only for admins */}
+        {isAdmin && (
+          <div className="nav-section">
+            {!collapsed && <h4>Administration</h4>}
+            <NavLink to="/user-management" className={({ isActive }) => `nav-link admin-link ${isActive ? 'active' : ''}`}>
+              <i className="nav-icon fas fa-users-cog"></i>
+              {!collapsed && <span>User Management</span>}
+            </NavLink>
+            <NavLink to="/settings" className={({ isActive }) => `nav-link admin-link ${isActive ? 'active' : ''}`}>
+              <i className="nav-icon fas fa-cog"></i>
+              {!collapsed && <span>Settings</span>}
+            </NavLink>
+          </div>
+        )}
 
-            <div className="nav-section">
-              <h4>Support</h4>
-              <Link to="/contact" className="nav-link">
-                <span className="nav-icon">📞</span>
-                Contact
-              </Link>
-            </div>
+        {/* Support Section - For all users */}
+        <div className="nav-section">
+          {!collapsed && <h4>Support</h4>}
+          <NavLink to="/chatbot" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
+            <i className="nav-icon fas fa-robot"></i>
+            {!collapsed && <span>Chat with Bot</span>}
+          </NavLink>
+          <NavLink to="/resources" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
+            <i className="nav-icon fas fa-book"></i>
+            {!collapsed && <span>Resources</span>}
+          </NavLink>
+          <NavLink to="/contact" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
+            <i className="nav-icon fas fa-envelope"></i>
+            {!collapsed && <span>Contact Support</span>}
+          </NavLink>
+        </div>
 
-            <div className="nav-section">
-              <h4>Account</h4>
-              <Link to="/profile" className="nav-link">
-                <span className="nav-icon">👤</span>
-                Profile
-              </Link>
-              <Link to="/settings" className="nav-link">
-                <span className="nav-icon">⚙️</span>
-                Settings
-              </Link>
-            </div>
-          </nav>
-        </>
-      )}
-    </div>
+        {/* User Section */}
+        <div className="nav-section">
+          {!collapsed && <h4>Account</h4>}
+          <NavLink to="/profile" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
+            <i className="nav-icon fas fa-user"></i>
+            {!collapsed && <span>My Profile</span>}
+          </NavLink>
+          <button onClick={() => {
+            localStorage.removeItem('user');
+            window.location.href = '/signin';
+          }} className="nav-link logout-link">
+            <i className="nav-icon fas fa-sign-out-alt"></i>
+            {!collapsed && <span>Logout</span>}
+          </button>
+        </div>
+      </nav>
+    </aside>
   );
-}
+};
 
 export default Sidebar;

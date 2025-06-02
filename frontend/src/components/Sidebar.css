@@ -1,199 +1,183 @@
 /* Sidebar.css */
 .sidebar {
+  width: 280px;
+  height: 100vh;
+  background: #ffffff;
+  border-right: 1px solid #e0e0e0;
   position: fixed;
   left: 0;
-  top: 60px;
-  width: 250px;
-  height: calc(100vh - 60px);
-  background-color: #2c3e50;
-  color: white;
-  padding: 0;
-  transition: transform 0.3s ease-in-out;
-  z-index: 100;
+  top: 0;
+  padding: 1.5rem;
+  transition: all 0.3s ease;
   overflow-y: auto;
-  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
 }
 
 .sidebar.collapsed {
-  transform: translateX(-100%);
+  width: 80px;
+  padding: 1.5rem 0.5rem;
 }
 
 /* Profile Section */
 .profile-section {
-  padding: 20px;
-  border-bottom: 1px solid #34495e;
-  background: linear-gradient(135deg, #3498db, #2980b9);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid #e0e0e0;
+  margin-bottom: 1.5rem;
 }
 
 .profile-pic {
-  width: 60px;
-  height: 60px;
+  width: 48px;
+  height: 48px;
+  background: #4a90e2;
+  color: white;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.2);
-  margin: 0 auto 15px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 24px;
-  font-weight: bold;
-  color: white;
-  border: 2px solid rgba(255, 255, 255, 0.3);
+  font-weight: 600;
+  font-size: 1.2rem;
+  flex-shrink: 0;
 }
 
 .profile-info {
-  text-align: center;
+  flex: 1;
+  min-width: 0;
 }
 
 .profile-info h3 {
-  margin: 0 0 5px 0;
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: white;
+  margin: 0;
+  font-size: 1rem;
+  color: #333;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .profile-info p {
-  margin: 0 0 10px 0;
-  font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.8);
-}
-
-.role-badge {
-  display: inline-block;
-  padding: 3px 8px;
-  border-radius: 12px;
-  font-size: 0.7rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.role-badge.role-admin {
-  background-color: #e74c3c;
-  color: white;
-}
-
-.role-badge.role-technician {
-  background-color: #f39c12;
-  color: white;
-}
-
-.role-badge.role-user {
-  background-color: #27ae60;
-  color: white;
+  margin: 0.25rem 0;
+  font-size: 0.875rem;
+  color: #666;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* Navigation */
 .sidebar-nav {
-  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
 }
 
 .nav-section {
-  margin-bottom: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
 .nav-section h4 {
-  margin: 0;
-  padding: 15px 20px 8px 20px;
-  font-size: 0.75rem;
-  font-weight: 600;
+  margin: 0 0 0.5rem 0;
+  font-size: 0.875rem;
+  color: #666;
   text-transform: uppercase;
-  letter-spacing: 1px;
-  color: #95a5a6;
-  border-top: 1px solid #34495e;
-}
-
-.nav-section:first-child h4 {
-  border-top: none;
-  padding-top: 20px;
+  letter-spacing: 0.5px;
 }
 
 .nav-link {
   display: flex;
   align-items: center;
-  padding: 12px 20px;
-  color: #ecf0f1;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  color: #666;
   text-decoration: none;
+  border-radius: 8px;
   transition: all 0.2s ease;
-  font-size: 0.9rem;
-  font-weight: 500;
-  border-left: 3px solid transparent;
 }
 
 .nav-link:hover {
-  background-color: #34495e;
-  color: #3498db;
-  border-left-color: #3498db;
+  background: #f5f5f5;
+  color: #4a90e2;
 }
 
 .nav-link.active {
-  background-color: #34495e;
-  color: #3498db;
-  border-left-color: #3498db;
+  background: #4a90e2;
+  color: white;
 }
 
 .nav-icon {
-  font-size: 1.1rem;
-  margin-right: 12px;
   width: 20px;
   text-align: center;
+  font-size: 1.1rem;
 }
 
-/* Admin-specific styling */
-.admin-link:hover {
-  background-color: #8e44ad;
-  color: white;
-  border-left-color: #9b59b6;
+/* Role Badge */
+.role-badge {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  margin-top: 0.5rem;
 }
 
-.admin-link.active {
-  background-color: #8e44ad;
+.admin-badge {
+  background: #ff6b6b;
   color: white;
-  border-left-color: #9b59b6;
+}
+
+.agent-badge {
+  background: #4a90e2;
+  color: white;
+}
+
+.user-badge {
+  background: #6c757d;
+  color: white;
+}
+
+/* Logout Button */
+.logout-link {
+  background: none;
+  border: none;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  font-size: 1rem;
+}
+
+.logout-link:hover {
+  background: #ff6b6b;
+  color: white;
 }
 
 /* Responsive Design */
 @media (max-width: 768px) {
   .sidebar {
-    width: 280px;
-    top: 50px;
-    height: calc(100vh - 50px);
+    transform: translateX(-100%);
   }
 
-  .profile-section {
-    padding: 15px;
-  }
-
-  .profile-pic {
-    width: 50px;
-    height: 50px;
-    font-size: 20px;
-  }
-
-  .nav-link {
-    padding: 10px 15px;
-    font-size: 0.85rem;
-  }
-
-  .nav-section h4 {
-    padding: 12px 15px 6px 15px;
-    font-size: 0.7rem;
+  .sidebar.collapsed {
+    transform: translateX(0);
   }
 }
 
-/* Scrollbar styling */
+/* Scrollbar Styling */
 .sidebar::-webkit-scrollbar {
-  width: 4px;
+  width: 6px;
 }
 
 .sidebar::-webkit-scrollbar-track {
-  background: #2c3e50;
+  background: #f1f1f1;
 }
 
 .sidebar::-webkit-scrollbar-thumb {
-  background: #34495e;
-  border-radius: 2px;
+  background: #888;
+  border-radius: 3px;
 }
 
 .sidebar::-webkit-scrollbar-thumb:hover {
-  background: #3498db;
+  background: #555;
 }

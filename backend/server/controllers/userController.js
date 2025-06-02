@@ -1,32 +1,19 @@
 const User = require('../models/user');
-const jwt = require('jsonwebtoken');
 
 // Register a new user
 exports.register = async (req, res) => {
   try {
-    const user = new User(req.body);
-    await user.save();
+    console.log('Received registration request:', req.body);
     
-    // Generate token for testing
-    const token = jwt.sign(
-      { userId: user._id },
-      process.env.JWT_SECRET || 'test-secret',
-      { expiresIn: '24h' }
-    );
-
-    res.status(201).json({
-      user: {
-        _id: user._id,
-        username: user.username,
-        email: user.email,
-        role: user.role,
-        department: user.department,
-        firstName: user.firstName,
-        lastName: user.lastName
-      },
-      token
-    });
+    const user = new User(req.body);
+    console.log('Created user object:', user);
+    
+    const savedUser = await user.save();
+    console.log('Saved user to database:', savedUser);
+    
+    res.status(201).json(savedUser);
   } catch (error) {
+    console.error('Registration error:', error);
     res.status(400).json({ message: error.message });
   }
 };
@@ -35,7 +22,10 @@ exports.register = async (req, res) => {
 exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
+    console.log('Login attempt for email:', email);
+    
     const user = await User.findOne({ email });
+    console.log('Found user:', user ? 'Yes' : 'No');
 
     if (!user) {
       return res.status(401).json({ message: 'Invalid credentials' });
@@ -46,26 +36,23 @@ exports.login = async (req, res) => {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
-    // Generate token for testing
-    const token = jwt.sign(
-      { userId: user._id },
-      process.env.JWT_SECRET || 'test-secret',
-      { expiresIn: '24h' }
-    );
+    // Update last login
+    user.lastLogin = new Date();
+    await user.save();
 
     res.json({
       user: {
         _id: user._id,
         username: user.username,
         email: user.email,
-        role: user.role,
-        department: user.department,
         firstName: user.firstName,
-        lastName: user.lastName
-      },
-      token
+        lastName: user.lastName,
+        role: user.role,
+        department: user.department
+      }
     });
   } catch (error) {
+    console.error('Login error:', error);
     res.status(500).json({ message: error.message });
   }
 };
@@ -73,9 +60,62 @@ exports.login = async (req, res) => {
 // Get current user
 exports.getCurrentUser = async (req, res) => {
   try {
-    const user = await User.findById(req.user._id).select('-password');
+    const user = await User.findById(req.user._id)
+      .select('-password');
     res.json(user);
   } catch (error) {
     res.status(500).json({ message: error.message });
+  }
+};
+
+// Update user profile
+exports.updateProfile = async (req, res) => {
+  try {
+    const updates = Object.keys(req.body);
+    const allowedUpdates = ['firstName', 'lastName', 'email', 'bio', 'profilePicture'];
+    const isValidOperation = updates.every(update => allowedUpdates.includes(update));
+
+    if (!isValidOperation) {
+      return res.status(400).json({ message: 'Invalid updates' });
+    }
+
+    updates.forEach(update => req.user[update] = req.body[update]);
+    await req.user.save();
+
+    res.json(req.user);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
+
+// Get all users (admin only)
+exports.getAllUsers = async (req, res) => {
+  try {
+    const users = await User.find()
+      .select('-password')
+      .sort({ createdAt: -1 });
+    res.json(users);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Update user role (admin only)
+exports.updateUserRole = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { role } = req.body;
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    user.role = role;
+    await user.save();
+
+    res.json(user);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
   }
 }; 

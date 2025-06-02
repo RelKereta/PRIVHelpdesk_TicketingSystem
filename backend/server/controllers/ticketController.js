@@ -1,165 +1,379 @@
 const Ticket = require('../models/ticket');
+const User = require('../models/user');
 
 // Create a new ticket
-exports.createTicket = async (req, res) => {
+const createTicket = async (req, res) => {
   try {
-    const ticket = new Ticket({
-      ...req.body,
-      createdBy: req.user._id // Assuming user is attached by auth middleware
-    });
+    const { title, description, category, priority } = req.body;
+    
+    // Get the authenticated user
+    const userId = req.headers['x-user-id'];
+    const user = await User.findById(userId);
+    
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const ticketData = {
+      title,
+      description,
+      category,
+      priority: priority || 'Medium',
+      requester: {
+        userId: user._id,
+        username: user.username,
+        email: user.email,
+        department: user.department
+      }
+    };
+
+    const ticket = new Ticket(ticketData);
     await ticket.save();
+
+    // Add ticket to user's createdTickets
+    await user.addCreatedTicket(ticket);
+
     res.status(201).json(ticket);
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    console.error('Error creating ticket:', error);
+    res.status(500).json({ message: 'Error creating ticket', error: error.message });
   }
 };
 
-// Get all tickets with filtering and pagination
-exports.getTickets = async (req, res) => {
+// Get all tickets (with filtering based on user role)
+const getTickets = async (req, res) => {
   try {
-    const {
-      page = 1,
-      limit = 10,
-      status,
-      priority,
-      type,
-      category,
-      department,
-      search
-    } = req.query;
-
-    const query = {};
+    const userId = req.headers['x-user-id'];
+    const user = await User.findById(userId);
     
-    // Add filters if provided
-    if (status) query.status = status;
-    if (priority) query.priority = priority;
-    if (type) query.type = type;
-    if (category) query.category = category;
-    if (department) query.department = department;
-    
-    // Add search functionality
-    if (search) {
-      query.$or = [
-        { subject: { $regex: search, $options: 'i' } },
-        { description: { $regex: search, $options: 'i' } },
-        { ticketNumber: { $regex: search, $options: 'i' } }
-      ];
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
     }
 
-    const tickets = await Ticket.find(query)
-      .populate('createdBy', 'username firstName lastName')
-      .populate('assignedTo', 'username firstName lastName')
-      .sort({ createdAt: -1 })
-      .limit(limit * 1)
-      .skip((page - 1) * limit);
+    let query = {};
 
-    const count = await Ticket.countDocuments(query);
+    // Filter tickets based on user role
+    if (user.role === 'user') {
+      // Users can only see their own tickets
+      query['requester.userId'] = user._id;
+    } else if (user.role === 'agent') {
+      // Agents can see tickets in their department or assigned to them
+      query = {
+        $or: [
+          { 'requester.department': user.department },
+          { 'assignee.userId': user._id }
+        ]
+      };
+    }
+    // Admins can see all tickets (no filter)
 
-    res.json({
-      tickets,
-      totalPages: Math.ceil(count / limit),
-      currentPage: page
-    });
+    const tickets = await Ticket.find(query).sort({ createdAt: -1 });
+
+    res.json(tickets);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error('Error fetching tickets:', error);
+    res.status(500).json({ message: 'Error fetching tickets', error: error.message });
   }
 };
 
 // Get a single ticket by ID
-exports.getTicket = async (req, res) => {
+const getTicketById = async (req, res) => {
   try {
-    const ticket = await Ticket.findById(req.params.id)
-      .populate('createdBy', 'username firstName lastName')
-      .populate('assignedTo', 'username firstName lastName')
-      .populate('comments.user', 'username firstName lastName');
+    const { id } = req.params;
+    const userId = req.headers['x-user-id'];
+    const user = await User.findById(userId);
     
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const ticket = await Ticket.findById(id)
+      .populate('requester.userId', 'firstName lastName email department')
+      .populate('assignee.userId', 'firstName lastName email')
+      .populate('comments.author.userId', 'firstName lastName');
+
     if (!ticket) {
       return res.status(404).json({ message: 'Ticket not found' });
     }
-    
+
+    // Check if user can access this ticket
+    if (!user.canAccessTicket(ticket)) {
+      return res.status(403).json({ message: 'Access denied' });
+    }
+
     res.json(ticket);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error('Error fetching ticket:', error);
+    res.status(500).json({ message: 'Error fetching ticket', error: error.message });
   }
 };
 
 // Update a ticket
-exports.updateTicket = async (req, res) => {
+const updateTicket = async (req, res) => {
   try {
-    const ticket = await Ticket.findById(req.params.id);
+    const { id } = req.params;
+    const userId = req.headers['x-user-id'];
+    const user = await User.findById(userId);
     
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const ticket = await Ticket.findById(id);
     if (!ticket) {
       return res.status(404).json({ message: 'Ticket not found' });
     }
 
-    // Update fields
-    Object.keys(req.body).forEach(key => {
-      ticket[key] = req.body[key];
-    });
-
-    // If status is being updated to 'Resolved', set resolvedAt
-    if (req.body.status === 'Resolved' && ticket.status !== 'Resolved') {
-      ticket.resolvedAt = new Date();
+    // Check permissions
+    if (!user.canAccessTicket(ticket) && user.role !== 'admin') {
+      return res.status(403).json({ message: 'Access denied' });
     }
 
+    const updates = { ...req.body };
+    
+    // Update ticket
+    Object.keys(updates).forEach(key => {
+      if (updates[key] !== undefined) {
+        ticket[key] = updates[key];
+      }
+    });
+
     await ticket.save();
+
+    // Update ticket status in user records if status changed
+    if (req.body.status) {
+      await User.updateMany(
+        {
+          $or: [
+            { 'createdTickets.ticketId': ticket._id },
+            { 'assignedTickets.ticketId': ticket._id }
+          ]
+        },
+        {
+          $set: {
+            'createdTickets.$[created].status': req.body.status,
+            'assignedTickets.$[assigned].status': req.body.status
+          }
+        },
+        {
+          arrayFilters: [
+            { 'created.ticketId': ticket._id },
+            { 'assigned.ticketId': ticket._id }
+          ]
+        }
+      );
+    }
+
     res.json(ticket);
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    console.error('Error updating ticket:', error);
+    res.status(500).json({ message: 'Error updating ticket', error: error.message });
   }
 };
 
-// Delete a ticket
-exports.deleteTicket = async (req, res) => {
+// Assign a ticket to an agent
+const assignTicket = async (req, res) => {
   try {
-    const ticket = await Ticket.findById(req.params.id);
+    const { id } = req.params;
+    const { assigneeId } = req.body;
+    const userId = req.headers['x-user-id'];
+    const user = await User.findById(userId);
     
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Check if user can assign tickets
+    if (!user.hasPermission('canAssignTickets')) {
+      return res.status(403).json({ message: 'Permission denied: Cannot assign tickets' });
+    }
+
+    const ticket = await Ticket.findById(id);
     if (!ticket) {
       return res.status(404).json({ message: 'Ticket not found' });
     }
 
-    await ticket.remove();
-    res.json({ message: 'Ticket deleted successfully' });
+    const assignee = await User.findById(assigneeId);
+    if (!assignee) {
+      return res.status(404).json({ message: 'Assignee not found' });
+    }
+
+    // Check if assignee is an agent or admin
+    if (assignee.role === 'user') {
+      return res.status(400).json({ message: 'Cannot assign ticket to regular user' });
+    }
+
+    // Update ticket assignment
+    ticket.assignee = {
+      userId: assignee._id,
+      username: assignee.username
+    };
+    
+    if (ticket.status === 'Open') {
+      ticket.status = 'In Progress';
+    }
+
+    await ticket.save();
+
+    // Add ticket to assignee's assignedTickets
+    await assignee.addAssignedTicket(ticket);
+
+    res.json(ticket);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error('Error assigning ticket:', error);
+    res.status(500).json({ message: 'Error assigning ticket', error: error.message });
   }
 };
 
 // Add a comment to a ticket
-exports.addComment = async (req, res) => {
+const addComment = async (req, res) => {
   try {
-    const ticket = await Ticket.findById(req.params.id);
+    const { id } = req.params;
+    const { text } = req.body;
+    const userId = req.headers['x-user-id'];
+    const user = await User.findById(userId);
     
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const ticket = await Ticket.findById(id);
     if (!ticket) {
       return res.status(404).json({ message: 'Ticket not found' });
     }
 
-    ticket.comments.push({
-      user: req.user._id,
-      text: req.body.text
-    });
+    // Check if user can access this ticket
+    if (!user.canAccessTicket(ticket)) {
+      return res.status(403).json({ message: 'Access denied' });
+    }
 
+    const comment = {
+      text,
+      author: {
+        userId: user._id,
+        username: user.username
+      }
+    };
+
+    ticket.comments.push(comment);
     await ticket.save();
+
     res.json(ticket);
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    console.error('Error adding comment:', error);
+    res.status(500).json({ message: 'Error adding comment', error: error.message });
   }
 };
 
-// Assign ticket to an agent
-exports.assignTicket = async (req, res) => {
+// Resolve a ticket
+const resolveTicket = async (req, res) => {
   try {
-    const ticket = await Ticket.findById(req.params.id);
+    const { id } = req.params;
+    const { resolution } = req.body;
+    const userId = req.headers['x-user-id'];
+    const user = await User.findById(userId);
     
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const ticket = await Ticket.findById(id);
     if (!ticket) {
       return res.status(404).json({ message: 'Ticket not found' });
     }
 
-    ticket.assignedTo = req.body.agentId;
+    // Only assigned agent, admin, or ticket creator can resolve
+    const canResolve = user.role === 'admin' || 
+                      (ticket.assignee && ticket.assignee.userId.toString() === user._id.toString()) ||
+                      (ticket.requester.userId.toString() === user._id.toString());
+
+    if (!canResolve) {
+      return res.status(403).json({ message: 'Permission denied: Cannot resolve this ticket' });
+    }
+
+    ticket.status = 'Resolved';
+    ticket.resolution = resolution;
+    ticket.resolvedAt = new Date();
+
     await ticket.save();
-    
+
+    // Update status in user records
+    await User.updateMany(
+      {
+        $or: [
+          { 'createdTickets.ticketId': ticket._id },
+          { 'assignedTickets.ticketId': ticket._id }
+        ]
+      },
+      {
+        $set: {
+          'createdTickets.$[created].status': 'Resolved',
+          'assignedTickets.$[assigned].status': 'Resolved'
+        }
+      },
+      {
+        arrayFilters: [
+          { 'created.ticketId': ticket._id },
+          { 'assigned.ticketId': ticket._id }
+        ]
+      }
+    );
+
     res.json(ticket);
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    console.error('Error resolving ticket:', error);
+    res.status(500).json({ message: 'Error resolving ticket', error: error.message });
   }
+};
+
+// Delete a ticket (admin only)
+const deleteTicket = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.headers['x-user-id'];
+    const user = await User.findById(userId);
+    
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Check if user can delete tickets
+    if (!user.hasPermission('canDeleteTickets')) {
+      return res.status(403).json({ message: 'Permission denied: Cannot delete tickets' });
+    }
+
+    const ticket = await Ticket.findById(id);
+    if (!ticket) {
+      return res.status(404).json({ message: 'Ticket not found' });
+    }
+
+    // Remove ticket references from user records
+    await User.updateMany(
+      {},
+      {
+        $pull: {
+          createdTickets: { ticketId: ticket._id },
+          assignedTickets: { ticketId: ticket._id }
+        }
+      }
+    );
+
+    await Ticket.findByIdAndDelete(id);
+
+    res.json({ message: 'Ticket deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting ticket:', error);
+    res.status(500).json({ message: 'Error deleting ticket', error: error.message });
+  }
+};
+
+module.exports = {
+  createTicket,
+  getTickets,
+  getTicketById,
+  updateTicket,
+  assignTicket,
+  addComment,
+  resolveTicket,
+  deleteTicket
 }; 

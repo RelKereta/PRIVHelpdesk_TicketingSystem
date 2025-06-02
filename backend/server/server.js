@@ -1,22 +1,32 @@
 require('dotenv').config(); // Load environment variables early
 const express = require('express');
 const mongoose = require('mongoose');
-const cors = require('cors'); // <-- Import cors
-const connectToDatabase = require('./connect');
+const cors = require('cors');
+const connectDB = require('./config/connect');
 const ticketRoutes = require('./routes/ticketRoutes');
 const userRoutes = require('./routes/userRoutes');
+const analyticsRoutes = require('./routes/analyticsRoutes');
+const fileRoutes = require('./routes/fileRoutes');
+const healthRoutes = require('./routes/healthRoutes');
+const config = require('./config/config');
+const solutionRoutes = require('./routes/solutionRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 const Ticket = require('./models/ticket');
 
 // Middleware to parse JSON
-app.use(cors());  // <-- Use cors middleware
+app.use(cors(config.corsOptions));  // Use configured CORS options
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // Routes
-app.use('/api/tickets', ticketRoutes);
+app.use('/api/health', healthRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/tickets', ticketRoutes);
+app.use('/api/analytics', analyticsRoutes);
+app.use('/api/files', fileRoutes);
+app.use('/api/solutions', solutionRoutes);
 
 // Health check route
 app.get('/health', (req, res) => {
@@ -28,14 +38,14 @@ app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({
     message: 'Something went wrong!',
-    error: process.env.NODE_ENV === 'development' ? err.message : undefined
+    error: process.env.NODE_ENV === 'production' ? {} : err.stack
   });
 });
 
 // Connect to DB
 (async () => {
   try {
-    await connectToDatabase();
+    await connectDB();
     
     app.listen(PORT, () => {
       console.log(`🚀 Server is running on port ${PORT}`);

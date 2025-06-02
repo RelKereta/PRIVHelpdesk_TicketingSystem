@@ -1,67 +1,63 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
 import './Header.css';
 
-function Header({ onToggleSidebar }) {
+const Header = ({ collapsed, onToggleSidebar }) => {
   const location = useLocation();
-  const { user, signOut } = useAuth();
+  const user = JSON.parse(localStorage.getItem('user'));
 
-  const handleLogout = () => {
-    signOut();
+  const getPageTitle = () => {
+    const path = location.pathname;
+    switch (path) {
+      case '/dashboard':
+        return 'Dashboard';
+      case '/create-ticket':
+        return 'Create Ticket';
+      case '/tickets':
+        return 'All Tickets';
+      case '/user-management':
+        return 'User Management';
+      case '/settings':
+        return 'Settings';
+      case '/profile':
+        return 'My Profile';
+      case '/chatbot':
+        return 'Chat with Bot';
+      case '/resources':
+        return 'Resources';
+      case '/contact':
+        return 'Contact Support';
+      default:
+        return 'Dashboard';
+    }
   };
 
   return (
     <header className="header">
       <div className="header-left">
-        <button className="toggle-button" onClick={onToggleSidebar} aria-label="Toggle sidebar">
-          ☰
+        <button 
+          className="sidebar-toggle"
+          onClick={onToggleSidebar}
+          aria-label="Toggle Sidebar"
+        >
+          <i className={`fas ${collapsed ? 'fa-bars' : 'fa-times'}`}></i>
         </button>
-        <Link to="/" className="logo">
-          <div className="logo-icon">
-            P
-          </div>
-          <span className="logo-text">PRIV</span>
-        </Link>
+        <h1>{getPageTitle()}</h1>
       </div>
-
-      <nav className="header-nav">
-        <Link 
-          to="/solutions" 
-          className={`nav-link ${location.pathname === '/solutions' ? 'active' : ''}`}
-        >
-          Solutions
-        </Link>
-        <Link 
-          to="/community" 
-          className={`nav-link ${location.pathname === '/community' ? 'active' : ''}`}
-        >
-          Community
-        </Link>
-        <Link 
-          to="/resources" 
-          className={`nav-link ${location.pathname === '/resources' ? 'active' : ''}`}
-        >
-          Resources
-        </Link>
-        <Link 
-          to="/contact" 
-          className={`nav-link ${location.pathname === '/contact' ? 'active' : ''}`}
-        >
-          Contact
-        </Link>
-      </nav>
-
-      {user && (
-        <div className="header-right">
-          <span className="user-greeting">Hello, {user.name}</span>
-          <button onClick={handleLogout} className="logout-btn">
-            Logout
-          </button>
+      
+      <div className="header-right">
+        <div className="user-menu">
+          <div className="user-info">
+            <span className="user-name">{user?.firstName} {user?.lastName}</span>
+            <span className="user-role">{user?.role}</span>
+          </div>
+          <div className="user-avatar">
+            {`${user?.firstName[0]}${user?.lastName[0]}`.toUpperCase()}
+          </div>
         </div>
-      )}
+      </div>
     </header>
   );
-}
+};
 
 export default Header;

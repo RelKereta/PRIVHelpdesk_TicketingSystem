@@ -44,13 +44,6 @@
   transition: all 0.3s ease-in-out;
 }
 
-/* Debug styles - remove these after testing */
-.sidebar-collapsed .dashboard-page {
-  border: 3px solid blue !important;
-  max-width: none !important;
-  width: 100% !important;
-}
-
 .header {
   background-color: white;
   padding: 15px;

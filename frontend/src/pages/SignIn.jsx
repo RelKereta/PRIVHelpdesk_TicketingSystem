@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { authService } from '../services/api';
 import './SignIn.css';
 import eyeClosed from "../assets/eye00.png";
 import eyeOpen from "../assets/eye01.png";
@@ -11,17 +11,41 @@ const SignIn = () => {
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
-  const { signIn } = useAuth();
+
+  useEffect(() => {
+    // Check if user is already logged in
+    const user = JSON.parse(localStorage.getItem('user'));
+    if (user) {
+      const role = user.role.toLowerCase();
+      if (role === 'admin') {
+        navigate('/admin-dashboard');
+      } else if (role === 'agent') {
+        navigate('/technician-dashboard');
+      } else {
+        navigate('/dashboard');
+      }
+    }
+  }, [navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
 
-    const result = await signIn(email, password);
-    if (result.success) {
-      navigate('/dashboard'); // This should match your dashboard route in App.jsx
-    } else {
-      setError(result.error || 'Failed to sign in');
+    try {
+      const response = await authService.login({ email, password });
+      localStorage.setItem('userId', response.user._id);
+      localStorage.setItem('user', JSON.stringify(response.user));
+      
+      const role = response.user.role.toLowerCase();
+      if (role === 'admin') {
+        navigate('/admin-dashboard');
+      } else if (role === 'agent') {
+        navigate('/technician-dashboard');
+      } else {
+        navigate('/dashboard');
+      }
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to sign in');
     }
   };
 

@@ -1,70 +1,112 @@
 const axios = require('axios');
 
-const API_URL = 'http://localhost:3000/api';
+const API_URL = 'http://localhost:3000';
+let authToken = null;
+let testTicketId = null;
 
-// Test data
-const testTicket = {
-  subject: "Test Ticket",
-  description: "This is a test ticket",
-  priority: "Medium",
-  type: "Bug",
-  category: "Software",
-  department: "IT"
-};
+async function runTests() {
+    try {
+        console.log('🚀 Starting API Tests...\n');
 
-// Test user data
-const testUser = {
-  username: "testuser",
-  email: "test@example.com",
-  password: "password123",
-  firstName: "Test",
-  lastName: "User",
-  department: "IT",
-  role: "user"
-};
+        // 1. Test Health Check
+        console.log('1. Testing Health Check...');
+        const healthResponse = await axios.get(`${API_URL}/health`);
+        console.log('✅ Health Check:', healthResponse.data);
 
-async function testEndpoints() {
-  try {
-    console.log('🔍 Testing API Endpoints...\n');
+        // 2. Test User Registration
+        console.log('\n2. Testing User Registration...');
+        const registerResponse = await axios.post(`${API_URL}/api/users/register`, {
+            username: 'testuser',
+            email: 'test@example.com',
+            password: 'test123',
+            firstName: 'Test',
+            lastName: 'User',
+            department: 'IT',
+            role: 'user'
+        });
+        console.log('✅ User Registration:', registerResponse.data);
 
-    // 1. Test Health Check
-    console.log('1. Testing Health Check...');
-    const health = await axios.get(`${API_URL}/health`);
-    console.log('✅ Health Check:', health.data, '\n');
+        // 3. Test User Login
+        console.log('\n3. Testing User Login...');
+        const loginResponse = await axios.post(`${API_URL}/api/users/login`, {
+            email: 'test@example.com',
+            password: 'test123'
+        });
+        authToken = loginResponse.data.token;
+        console.log('✅ User Login:', { token: authToken.substring(0, 20) + '...' });
 
-    // 2. Test Ticket Creation
-    console.log('2. Testing Ticket Creation...');
-    const createTicket = await axios.post(`${API_URL}/tickets`, testTicket);
-    console.log('✅ Ticket Created:', createTicket.data, '\n');
+        // 4. Test Get Current User
+        console.log('\n4. Testing Get Current User...');
+        const userResponse = await axios.get(`${API_URL}/api/users/me`, {
+            headers: { Authorization: `Bearer ${authToken}` }
+        });
+        console.log('✅ Get Current User:', userResponse.data);
 
-    // 3. Test Get All Tickets
-    console.log('3. Testing Get All Tickets...');
-    const getAllTickets = await axios.get(`${API_URL}/tickets`);
-    console.log('✅ All Tickets:', getAllTickets.data, '\n');
+        // 5. Test Create Ticket
+        console.log('\n5. Testing Create Ticket...');
+        const createTicketResponse = await axios.post(
+            `${API_URL}/api/tickets`,
+            {
+                subject: 'Test Ticket',
+                description: 'This is a test ticket',
+                priority: 'Medium',
+                type: 'Bug',
+                category: 'Software',
+                department: 'IT'
+            },
+            {
+                headers: { Authorization: `Bearer ${authToken}` }
+            }
+        );
+        testTicketId = createTicketResponse.data._id;
+        console.log('✅ Create Ticket:', createTicketResponse.data);
 
-    // 4. Test Get Single Ticket
-    console.log('4. Testing Get Single Ticket...');
-    const ticketId = createTicket.data._id;
-    const getTicket = await axios.get(`${API_URL}/tickets/${ticketId}`);
-    console.log('✅ Single Ticket:', getTicket.data, '\n');
+        // 6. Test Get All Tickets
+        console.log('\n6. Testing Get All Tickets...');
+        const ticketsResponse = await axios.get(`${API_URL}/api/tickets`, {
+            headers: { Authorization: `Bearer ${authToken}` }
+        });
+        console.log('✅ Get All Tickets:', `Found ${ticketsResponse.data.length} tickets`);
 
-    // 5. Test Update Ticket
-    console.log('5. Testing Update Ticket...');
-    const updateData = { priority: 'High' };
-    const updateTicket = await axios.patch(`${API_URL}/tickets/${ticketId}`, updateData);
-    console.log('✅ Updated Ticket:', updateTicket.data, '\n');
+        // 7. Test Get Single Ticket
+        console.log('\n7. Testing Get Single Ticket...');
+        const singleTicketResponse = await axios.get(`${API_URL}/api/tickets/${testTicketId}`, {
+            headers: { Authorization: `Bearer ${authToken}` }
+        });
+        console.log('✅ Get Single Ticket:', singleTicketResponse.data);
 
-    // 6. Test Add Comment
-    console.log('6. Testing Add Comment...');
-    const commentData = { text: 'This is a test comment' };
-    const addComment = await axios.post(`${API_URL}/tickets/${ticketId}/comments`, commentData);
-    console.log('✅ Added Comment:', addComment.data, '\n');
+        // 8. Test Add Comment
+        console.log('\n8. Testing Add Comment...');
+        const commentResponse = await axios.post(
+            `${API_URL}/api/tickets/${testTicketId}/comments`,
+            {
+                text: 'This is a test comment'
+            },
+            {
+                headers: { Authorization: `Bearer ${authToken}` }
+            }
+        );
+        console.log('✅ Add Comment:', commentResponse.data);
 
-    console.log('🎉 All tests completed successfully!');
+        // 9. Test Update Ticket
+        console.log('\n9. Testing Update Ticket...');
+        const updateResponse = await axios.patch(
+            `${API_URL}/api/tickets/${testTicketId}`,
+            {
+                status: 'In Progress',
+                priority: 'High'
+            },
+            {
+                headers: { Authorization: `Bearer ${authToken}` }
+            }
+        );
+        console.log('✅ Update Ticket:', updateResponse.data);
 
-  } catch (error) {
-    console.error('❌ Error:', error.response ? error.response.data : error.message);
-  }
+        console.log('\n✨ All tests completed successfully!');
+
+    } catch (error) {
+        console.error('\n❌ Test Failed:', error.response ? error.response.data : error.message);
+    }
 }
 
-testEndpoints(); 
+runTests(); 

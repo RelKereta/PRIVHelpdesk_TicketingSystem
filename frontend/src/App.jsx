@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import { AuthProvider, useAuth } from './context/AuthContext';
-import { TicketProvider } from './context/TicketContext';
 
 import Dashboard from './pages/Dashboard';
+import UserDashboard from './pages/UserDashboard';
 import Solutions from './pages/Solutions';
 import Community from './pages/Community';
 import Resources from './pages/Resources';
@@ -19,9 +18,9 @@ import Sidebar from './components/Sidebar';
 import Header from './components/Header';
 
 const ProtectedRoute = ({ children, requiredPermission = null }) => {
-  const { user, hasPermission } = useAuth();
+  const user = JSON.parse(localStorage.getItem('user'));
   if (!user) return <Navigate to="/signin" />;
-  if (requiredPermission && !hasPermission(requiredPermission)) {
+  if (requiredPermission && user.role !== 'admin') {
     return (
       <div style={{ padding: '20px', textAlign: 'center' }}>
         <h2>Access Denied</h2>
@@ -33,17 +32,30 @@ const ProtectedRoute = ({ children, requiredPermission = null }) => {
 };
 
 const AuthenticatedRoute = ({ children }) => {
-  const { user } = useAuth();
+  const user = JSON.parse(localStorage.getItem('user'));
   return user ? <Navigate to="/dashboard" /> : children;
 };
 
-function AppContent() {
-  const [collapsed, setCollapsed] = useState(true);
-  const handleToggleSidebar = () => setCollapsed(!collapsed);
+const DashboardRoute = () => {
+  const user = JSON.parse(localStorage.getItem('user'));
+  if (!user) return <Navigate to="/signin" />;
+  
+  // Redirect to appropriate dashboard based on user role
+  if (user.role === 'user') {
+    return <UserDashboard />;
+  }
+  return <Dashboard />;
+};
 
+function AppContent() {
+  const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
   const hideLayoutRoutes = ['/signin', '/signup'];
   const shouldHideLayout = hideLayoutRoutes.includes(location.pathname);
+
+  const handleToggleSidebar = () => {
+    setCollapsed(!collapsed);
+  };
 
   useEffect(() => {
     const handleUnload = () => {};
@@ -58,23 +70,23 @@ function AppContent() {
 
   return (
     <div className="app-container">
-      {!shouldHideLayout && <Header onToggleSidebar={handleToggleSidebar} />}
-      {!shouldHideLayout && <Sidebar collapsed={collapsed} />}
+      {!shouldHideLayout && <Header onToggleSidebar={handleToggleSidebar} collapsed={collapsed} />}
+      {!shouldHideLayout && <Sidebar collapsed={collapsed} onToggle={handleToggleSidebar} />}
       <div className={`main-content ${collapsed ? 'sidebar-collapsed' : ''}`}>
         <Routes>
           <Route path="/signin" element={<AuthenticatedRoute><SignIn /></AuthenticatedRoute>} />
           <Route path="/signup" element={<AuthenticatedRoute><SignUp /></AuthenticatedRoute>} />
-          <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+          <Route path="/" element={<DashboardRoute />} />
+          <Route path="/dashboard" element={<DashboardRoute />} />
           <Route path="/solutions" element={<ProtectedRoute><Solutions /></ProtectedRoute>} />
           <Route path="/community" element={<ProtectedRoute><Community /></ProtectedRoute>} />
           <Route path="/resources" element={<ProtectedRoute><Resources /></ProtectedRoute>} />
           <Route path="/contact" element={<ProtectedRoute><Contact /></ProtectedRoute>} />
           <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
           <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-          <Route path="/user-management" element={<ProtectedRoute requiredPermission="user_management"><UserManagement /></ProtectedRoute>} />
+          <Route path="/user-management" element={<ProtectedRoute requiredPermission="admin"><UserManagement /></ProtectedRoute>} />
           <Route path="/chatbot" element={<ProtectedRoute><Chatbot /></ProtectedRoute>} />
           <Route path="/create-ticket" element={<ProtectedRoute><CreateTicket /></ProtectedRoute>} />
-          <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
         </Routes>
       </div>
     </div>
@@ -84,11 +96,7 @@ function AppContent() {
 function App() {
   return (
     <Router>
-      <AuthProvider>
-        <TicketProvider>
-          <AppContent />
-        </TicketProvider>
-      </AuthProvider>
+      <AppContent />
     </Router>
   );
 }

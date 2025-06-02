@@ -1,46 +1,66 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../context/AuthContext';
-import { useTickets } from '../context/TicketContext';
 import TicketsTable from '../components/TicketsTable.jsx';
 import ErrorBoundary from '../components/ErrorBoundary.jsx';
 import './Dashboard.css';
+import { ticketService, analyticsService, authService } from '../services/api';
 
 function Dashboard() {
-  const { user, isAdmin, isTechnician } = useAuth();
-  const { 
-    tickets, 
-    getTicketStats, 
-    getAssignedTickets, 
-    getOverdueTickets,
-    approveTicket,
-    resolveTicket
-  } = useTickets();
-
+  const [user, setUser] = useState(null);
+  const [tickets, setTickets] = useState([]);
   const [stats, setStats] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [overdueTickets, setOverdueTickets] = useState([]);
   const [userTickets, setUserTickets] = useState([]);
   const [pendingApprovals, setPendingApprovals] = useState([]);
 
   useEffect(() => {
-    // Update statistics
-    setStats(getTicketStats());
-    setOverdueTickets(getOverdueTickets());
-    
-    if (isTechnician() || isAdmin()) {
-      setUserTickets(getAssignedTickets(user?.name));
-      setPendingApprovals(tickets.filter(t => t.approvalStatus === 'Pending'));
-    } else {
-      // Regular users see their own tickets
-      setUserTickets(tickets.filter(t => t.requesterEmail === user?.email));
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        // Fetch current user
+        const userData = await authService.getCurrentUser();
+        setUser(userData);
+        // Fetch tickets
+        const ticketsData = await ticketService.getTickets();
+        setTickets(ticketsData);
+        // Fetch analytics
+        const analyticsData = await analyticsService.getStats();
+        setStats(analyticsData);
+        // Overdue tickets
+        setOverdueTickets(ticketsData.filter(t => t.slaResolutionDue && new Date(t.slaResolutionDue) < new Date() && t.status !== 'Resolved' && t.status !== 'Closed'));
+        // User tickets
+        if (userData.role === 'agent' || userData.role === 'admin') {
+          setUserTickets(ticketsData.filter(t => t.assignedTo === userData.firstName + ' ' + userData.lastName));
+          setPendingApprovals(ticketsData.filter(t => t.approvalStatus === 'Pending'));
+        } else {
+          setUserTickets(ticketsData.filter(t => t.requesterEmail === userData.email));
+        }
+      } catch (err) {
+        setError(err.response?.data?.message || 'Failed to fetch dashboard data');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
+
+  const handleStatusChange = async (ticketId, newStatus) => {
+    try {
+      await ticketService.updateTicket(ticketId, { status: newStatus });
+      const updatedTickets = await ticketService.getTickets();
+      setTickets(updatedTickets);
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to update ticket status');
     }
-  }, [tickets, user, isTechnician, isAdmin]);
+  };
 
   const handleQuickApprove = (ticketId, approved) => {
-    approveTicket(ticketId, approved, user?.name, approved ? '' : 'Quick rejection from dashboard');
+    // Implement if needed
   };
 
   const handleQuickResolve = (ticketId, resolution) => {
-    resolveTicket(ticketId, resolution, user?.name);
+    // Implement if needed
   };
 
   const getPriorityColor = (priority) => {
@@ -68,28 +88,43 @@ function Dashboard() {
     const now = new Date();
     const due = new Date(dueDate);
     const diff = due - now;
-    
     if (diff < 0) return 'Overdue';
-    
     const hours = Math.floor(diff / (1000 * 60 * 60));
     const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-    
     if (hours > 24) {
       const days = Math.floor(hours / 24);
       return `${days}d ${hours % 24}h`;
     }
-    
     return `${hours}h ${minutes}m`;
   };
+
+  if (loading) {
+    return (
+      <div className="loading-spinner">
+        <div className="spinner"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="error-message">
+        {error}
+      </div>
+    );
+  }
+
+  // Helper role checks
+  const isAdmin = () => user && user.role === 'admin';
+  const isTechnician = () => user && user.role === 'agent';
 
   return (
     <div className="dashboard-page">
       <ErrorBoundary>
         <div className="dashboard-header">
           <h1>Dashboard</h1>
-          <p>Welcome back, {user?.name}! Here's your helpdesk overview.</p>
+          <p>Welcome back, {user?.firstName}! Here's your helpdesk overview.</p>
         </div>
-
         {/* Statistics Cards */}
         <div className="stats-grid">
           <div className="stat-card total">
@@ -99,7 +134,6 @@ function Dashboard() {
               <p>Total Tickets</p>
             </div>
           </div>
-          
           <div className="stat-card open">
             <div className="stat-icon">🔓</div>
             <div className="stat-content">
@@ -107,7 +141,6 @@ function Dashboard() {
               <p>Open Tickets</p>
             </div>
           </div>
-          
           <div className="stat-card in-progress">
             <div className="stat-icon">⚡</div>
             <div className="stat-content">
@@ -115,7 +148,6 @@ function Dashboard() {
               <p>In Progress</p>
             </div>
           </div>
-          
           <div className="stat-card overdue">
             <div className="stat-icon">⏰</div>
             <div className="stat-content">
@@ -123,7 +155,6 @@ function Dashboard() {
               <p>Overdue</p>
             </div>
           </div>
-
           {(isTechnician() || isAdmin()) && (
             <>
               <div className="stat-card critical">
@@ -133,7 +164,6 @@ function Dashboard() {
                   <p>Critical Priority</p>
                 </div>
               </div>
-              
               <div className="stat-card approval">
                 <div className="stat-icon">✋</div>
                 <div className="stat-content">
@@ -144,7 +174,6 @@ function Dashboard() {
             </>
           )}
         </div>
-
         {/* Priority Alerts */}
         {overdueTickets.length > 0 && (
           <div className="alert-section">
@@ -152,9 +181,9 @@ function Dashboard() {
               <h3>⚠️ Overdue Tickets ({overdueTickets.length})</h3>
               <div className="overdue-list">
                 {overdueTickets.slice(0, 3).map(ticket => (
-                  <div key={ticket.id} className="overdue-item">
-                    <span className="ticket-id">{ticket.id}</span>
-                    <span className="ticket-subject">{ticket.subject}</span>
+                  <div key={ticket._id} className="overdue-item">
+                    <span className="ticket-id">{ticket.ticketNumber}</span>
+                    <span className="ticket-subject">{ticket.title}</span>
                     <span className="overdue-time">
                       {formatTimeRemaining(ticket.slaResolutionDue)} overdue
                     </span>
@@ -167,7 +196,6 @@ function Dashboard() {
             </div>
           </div>
         )}
-
         <div className="dashboard-content">
           {/* Pending Approvals for Admins */}
           {isAdmin() && pendingApprovals.length > 0 && (
@@ -175,9 +203,9 @@ function Dashboard() {
               <h2>Pending Approvals ({pendingApprovals.length})</h2>
               <div className="approval-cards">
                 {pendingApprovals.slice(0, 3).map(ticket => (
-                  <div key={ticket.id} className="approval-card">
+                  <div key={ticket._id} className="approval-card">
                     <div className="approval-header">
-                      <span className="ticket-id">{ticket.id}</span>
+                      <span className="ticket-id">{ticket.ticketNumber}</span>
                       <span 
                         className="priority-badge"
                         style={{ backgroundColor: getPriorityColor(ticket.priority) }}
@@ -185,18 +213,18 @@ function Dashboard() {
                         {ticket.priority}
                       </span>
                     </div>
-                    <h4>{ticket.subject}</h4>
+                    <h4>{ticket.title}</h4>
                     <p className="requester">Requested by: {ticket.requesterName}</p>
                     <p className="description">{ticket.description}</p>
                     <div className="approval-actions">
                       <button 
-                        onClick={() => handleQuickApprove(ticket.id, true)}
+                        onClick={() => handleQuickApprove(ticket._id, true)}
                         className="approve-btn"
                       >
                         Approve
                       </button>
                       <button 
-                        onClick={() => handleQuickApprove(ticket.id, false)}
+                        onClick={() => handleQuickApprove(ticket._id, false)}
                         className="reject-btn"
                       >
                         Reject
@@ -207,7 +235,6 @@ function Dashboard() {
               </div>
             </div>
           )}
-
           {/* Quick Actions for Technicians */}
           {(isTechnician() || isAdmin()) && (
             <div className="dashboard-section">
@@ -228,7 +255,6 @@ function Dashboard() {
               </div>
             </div>
           )}
-
           {/* My Tickets Section */}
           <div className="dashboard-section">
             <h2>
@@ -238,9 +264,9 @@ function Dashboard() {
             {userTickets.length > 0 ? (
               <div className="tickets-preview">
                 {userTickets.slice(0, 5).map(ticket => (
-                  <div key={ticket.id} className="ticket-card">
+                  <div key={ticket._id} className="ticket-card">
                     <div className="ticket-header">
-                      <span className="ticket-id">{ticket.id}</span>
+                      <span className="ticket-id">{ticket.ticketNumber}</span>
                       <div className="ticket-badges">
                         <span 
                           className="priority-badge"
@@ -256,15 +282,15 @@ function Dashboard() {
                         </span>
                       </div>
                     </div>
-                    <h4>{ticket.subject}</h4>
+                    <h4>{ticket.title}</h4>
                     <div className="ticket-meta">
-                      <span>Created: {new Date(ticket.createdDate).toLocaleDateString()}</span>
+                      <span>Created: {new Date(ticket.createdAt).toLocaleDateString()}</span>
                       <span>SLA: {formatTimeRemaining(ticket.slaResolutionDue)}</span>
                     </div>
                     {(isTechnician() || isAdmin()) && ticket.status === 'Open' && (
                       <div className="ticket-actions">
                         <button 
-                          onClick={() => handleQuickResolve(ticket.id, 'Quick resolution from dashboard')}
+                          onClick={() => handleQuickResolve(ticket._id, 'Quick resolution from dashboard')}
                           className="resolve-btn"
                         >
                           Quick Resolve
@@ -285,7 +311,6 @@ function Dashboard() {
               </div>
             )}
           </div>
-
           {/* All Tickets Section */}
           <div className="dashboard-section">
             <h2>Recent Tickets</h2>
