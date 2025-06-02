@@ -6,8 +6,9 @@ services:
     restart: always
     environment:
       PORT: 3000
-      CONNECTION_URL: ${MONGO_URI}
+      MONGO_URI: ${MONGO_URI}
       REFRESH_TOKEN_SECRET: ${REFRESH_TOKEN_SECRET}
+      FRONTEND_URL: ${FRONTEND_URL}
     ports:
       - "3014:3014"
 
