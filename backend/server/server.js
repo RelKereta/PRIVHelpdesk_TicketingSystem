@@ -4,6 +4,7 @@ const mongoose = require('mongoose');
 const cors = require('cors'); // <-- Import cors
 const connectToDatabase = require('./connect');
 const ticketRoutes = require('./routes/ticketRoutes');
+const userRoutes = require('./routes/userRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -15,6 +16,7 @@ app.use(express.json());
 
 // Routes
 app.use('/api/tickets', ticketRoutes);
+app.use('/api/users', userRoutes);
 
 // Health check route
 app.get('/health', (req, res) => {
