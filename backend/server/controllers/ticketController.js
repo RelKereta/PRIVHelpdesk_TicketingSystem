@@ -4,14 +4,30 @@ const User = require('../models/user');
 // Create a new ticket
 const createTicket = async (req, res) => {
   try {
+    console.log('Received ticket creation request:', req.body);
     const { title, description, category, priority } = req.body;
     
     // Get the authenticated user
     const userId = req.headers['x-user-id'];
+    console.log('User ID from headers:', userId);
+    
+    if (!userId) {
+      return res.status(401).json({ message: 'User ID is required' });
+    }
+
     const user = await User.findById(userId);
+    console.log('Found user:', user ? { id: user._id, username: user.username, role: user.role } : 'Not found');
     
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Validate required fields
+    if (!title || !description || !category) {
+      return res.status(400).json({ 
+        message: 'Title, description, and category are required',
+        received: { title, description, category }
+      });
     }
 
     const ticketData = {
@@ -27,20 +43,37 @@ const createTicket = async (req, res) => {
       }
     };
 
+    console.log('Creating ticket with data:', ticketData);
+
     const ticket = new Ticket(ticketData);
     await ticket.save();
+    console.log('Ticket saved successfully:', ticket._id);
 
     // Add ticket to user's createdTickets
     await user.addCreatedTicket(ticket);
+    console.log('Ticket added to user\'s createdTickets');
 
     res.status(201).json(ticket);
   } catch (error) {
-    console.error('Error creating ticket:', error);
-    res.status(500).json({ message: 'Error creating ticket', error: error.message });
+    console.error('Error creating ticket:', {
+      message: error.message,
+      stack: error.stack,
+      name: error.name,
+      code: error.code
+    });
+    res.status(500).json({ 
+      message: 'Error creating ticket', 
+      error: error.message,
+      details: process.env.NODE_ENV === 'development' ? {
+        name: error.name,
+        code: error.code,
+        stack: error.stack
+      } : undefined
+    });
   }
 };
 
-// Get all tickets (with filtering based on user role)
+// Get all tickets with role-based filtering
 const getTickets = async (req, res) => {
   try {
     const userId = req.headers['x-user-id'];
@@ -51,23 +84,16 @@ const getTickets = async (req, res) => {
     }
 
     let query = {};
-
-    // Filter tickets based on user role
-    if (user.role === 'user') {
-      // Users can only see their own tickets
-      query['requester.userId'] = user._id;
-    } else if (user.role === 'agent') {
-      // Agents can see tickets in their department or assigned to them
-      query = {
-        $or: [
-          { 'requester.department': user.department },
-          { 'assignee.userId': user._id }
-        ]
-      };
+    
+    // If user is not admin or agent, only show their own tickets
+    if (user.role !== 'admin' && user.role !== 'agent') {
+      query['requester.userId'] = userId;
     }
-    // Admins can see all tickets (no filter)
 
-    const tickets = await Ticket.find(query).sort({ createdAt: -1 });
+    const tickets = await Ticket.find(query)
+      .sort({ createdAt: -1 })
+      .populate('requester.userId', 'username email department')
+      .populate('assignedTo', 'username email department');
 
     res.json(tickets);
   } catch (error) {

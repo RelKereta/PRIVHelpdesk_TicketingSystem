@@ -1,25 +1,56 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { ticketService } from '../services/api';
+import { ticketService, authService } from '../services/api';
 import './TicketsTable.css';
 
 const TicketsTable = () => {
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [user, setUser] = useState(null);
 
   useEffect(() => {
-    fetchTickets();
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        setError('');
+
+        // Get current user
+        const userData = await authService.getCurrentUser();
+        setUser(userData);
+        
+        // Fetch tickets
+        const response = await ticketService.getTickets();
+        setTickets(response);
+      } catch (err) {
+        console.error('Tickets fetch error:', err);
+        setError(err.response?.data?.message || 'Failed to fetch tickets');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
   }, []);
 
-  const fetchTickets = async () => {
-    try {
-      const response = await ticketService.getTickets();
-      setTickets(response);
-    } catch (err) {
-      setError('Failed to fetch tickets');
-    } finally {
-      setLoading(false);
+  const getStatusClass = (status) => {
+    if (!status) return '';
+    switch (status.toLowerCase()) {
+      case 'open': return 'status-open';
+      case 'in progress': return 'status-in-progress';
+      case 'resolved': return 'status-resolved';
+      case 'closed': return 'status-closed';
+      default: return '';
+    }
+  };
+
+  const getPriorityClass = (priority) => {
+    if (!priority) return '';
+    switch (priority.toLowerCase()) {
+      case 'critical': return 'priority-critical';
+      case 'high': return 'priority-high';
+      case 'medium': return 'priority-medium';
+      case 'low': return 'priority-low';
+      default: return '';
     }
   };
 
@@ -55,28 +86,36 @@ const TicketsTable = () => {
               <th>Status</th>
               <th>Priority</th>
               <th>Created</th>
+              <th>Requester</th>
+              {(user?.role === 'admin' || user?.role === 'agent') && <th>Assigned To</th>}
               <th>Actions</th>
             </tr>
           </thead>
           <tbody>
             {tickets.map(ticket => (
               <tr key={ticket._id}>
-                <td>{ticket._id}</td>
+                <td>{ticket.ticketNumber || ticket._id}</td>
                 <td>{ticket.title}</td>
                 <td>
-                  <span className={`status-badge status-${ticket.status}`}>
-                    {ticket.status}
+                  <span className={`status-badge ${getStatusClass(ticket.status)}`}>
+                    {ticket.status || 'Open'}
                   </span>
                 </td>
                 <td>
-                  <span className={`priority-badge priority-${ticket.priority}`}>
-                    {ticket.priority}
+                  <span className={`priority-badge ${getPriorityClass(ticket.priority)}`}>
+                    {ticket.priority || 'Medium'}
                   </span>
                 </td>
                 <td>{new Date(ticket.createdAt).toLocaleDateString()}</td>
+                <td>{ticket.requester?.username || 'N/A'}</td>
+                {(user?.role === 'admin' || user?.role === 'agent') && (
+                  <td>{ticket.assignedTo?.username || 'Unassigned'}</td>
+                )}
                 <td>
-                  <button className="view-btn">View</button>
-                  <button className="edit-btn">Edit</button>
+                  <Link to={`/tickets/${ticket._id}`} className="view-btn">View</Link>
+                  {(user?.role === 'admin' || user?.role === 'agent') && (
+                    <Link to={`/tickets/${ticket._id}/edit`} className="edit-btn">Edit</Link>
+                  )}
                 </td>
               </tr>
             ))}

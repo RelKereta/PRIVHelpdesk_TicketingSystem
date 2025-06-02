@@ -1,32 +1,20 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ticketService, authService } from '../services/api';
+import { ticketService } from '../services/api';
 import './CreateTicket.css';
 
 const CreateTicket = () => {
   const navigate = useNavigate();
-  const [user, setUser] = useState(null);
+  const user = JSON.parse(localStorage.getItem('user'));
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    priority: 'Medium',
+    priority: 'medium',
     category: '',
     attachments: []
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const userData = await authService.getCurrentUser();
-        setUser(userData);
-      } catch (err) {
-        setError('Failed to fetch user data');
-      }
-    };
-    fetchUser();
-  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -50,36 +38,29 @@ const CreateTicket = () => {
     setLoading(true);
 
     try {
+      // Format the data according to the backend expectations
       const ticketData = {
-        ...formData,
-        requester: {
-          userId: user._id,
-          username: `${user.firstName} ${user.lastName}`,
-          email: user.email,
-          department: user.department
-        }
+        title: formData.title.trim(),
+        description: formData.description.trim(),
+        category: formData.category,
+        priority: formData.priority.charAt(0).toUpperCase() + formData.priority.slice(1) // Capitalize first letter
       };
 
-      await ticketService.createTicket(ticketData);
+      console.log('Submitting ticket data:', ticketData);
+      const response = await ticketService.createTicket(ticketData);
+      console.log('Ticket created successfully:', response);
       navigate('/dashboard');
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to create ticket');
+      console.error('Error creating ticket:', err);
+      setError(err.response?.data?.message || 'Failed to create ticket. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
-  if (!user) {
-    return <div className="loading">Loading...</div>;
-  }
-
   return (
     <div className="create-ticket-container">
-      <div className="create-ticket-header">
-        <h1>Create New Ticket</h1>
-        <p>Fill out the form below to submit a new support ticket</p>
-      </div>
-
+      <h2>Create New Ticket</h2>
       {error && <div className="error-message">{error}</div>}
       
       <form onSubmit={handleSubmit} className="create-ticket-form">
@@ -119,10 +100,10 @@ const CreateTicket = () => {
               onChange={handleChange}
               required
             >
-              <option value="Low">Low</option>
-              <option value="Medium">Medium</option>
-              <option value="High">High</option>
-              <option value="Critical">Critical</option>
+              <option value="low">Low</option>
+              <option value="medium">Medium</option>
+              <option value="high">High</option>
+              <option value="critical">Critical</option>
             </select>
           </div>
 
@@ -158,22 +139,16 @@ const CreateTicket = () => {
             <div className="attachments-list">
               {formData.attachments.map((file, index) => (
                 <div key={index} className="attachment-item">
-                  <span className="file-name">{file.name}</span>
-                  <span className="file-size">({(file.size / 1024).toFixed(1)} KB)</span>
+                  {file.name}
                 </div>
               ))}
             </div>
           )}
         </div>
 
-        <div className="form-actions">
-          <button type="button" className="cancel-button" onClick={() => navigate('/dashboard')}>
-            Cancel
-          </button>
-          <button type="submit" className="submit-button" disabled={loading}>
-            {loading ? 'Creating...' : 'Create Ticket'}
-          </button>
-        </div>
+        <button type="submit" className="submit-button" disabled={loading}>
+          {loading ? 'Creating...' : 'Create Ticket'}
+        </button>
       </form>
     </div>
   );

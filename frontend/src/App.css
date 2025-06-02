@@ -4,29 +4,27 @@
   display: flex;
   min-height: 100vh;
   background-color: #f5f7fa;
-  position: relative;
 }
 
 .dashboard {
   display: flex;
   min-height: 100vh;
-  background-color: #f5f7fa;
+  background-color: #f5f7fa
 }
 
 .main-content {
   flex: 1;
   padding: 20px;
-  padding-top: 90px; /* Increased to account for fixed header */
-  margin-left: 250px; /* Default margin when sidebar is expanded */
+  padding-top: 90px;
+  padding-left: 270px;
   min-height: 100vh;
   box-sizing: border-box;
-  transition: margin-left 0.3s ease-in-out;
-  width: calc(100% - 250px); /* Adjust width based on sidebar */
+  transition: padding-left 0.3s ease;
+  width: 100%;
 }
 
 .main-content.sidebar-collapsed {
-  margin-left: 70px; /* Width of collapsed sidebar */
-  width: calc(100% - 70px);
+  padding-left: 20px;
 }
 
 /* Ensure all page containers inherit the proper spacing */
@@ -47,27 +45,26 @@
 
 .header {
   background-color: white;
-  padding: 15px;
+  padding: 15px 20px;
   box-shadow: 0 2px 5px rgba(0,0,0,0.1);
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   z-index: 1001;
-  transition: all 0.3s ease-in-out;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 @media (max-width: 768px) {
   .main-content {
-    margin-left: 0;
-    width: 100%;
     padding-left: 20px;
     padding-right: 20px;
   }
   
   .main-content.sidebar-collapsed {
-    margin-left: 0;
-    width: 100%;
+    padding-left: 20px;
   }
 }
 

@@ -12,43 +12,69 @@ const api = axios.create({
 
 // Add request interceptor to add user ID to headers
 api.interceptors.request.use((config) => {
-  const userId = localStorage.getItem('userId');
-  if (userId) {
-    config.headers['X-User-Id'] = userId;
+  const user = JSON.parse(localStorage.getItem('user'));
+  if (user && user._id) {
+    config.headers['X-User-Id'] = user._id;
   }
   return config;
 });
+
+// Add response interceptor for error handling
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      // Handle unauthorized access
+      localStorage.removeItem('user');
+      window.location.href = '/signin';
+    }
+    return Promise.reject(error);
+  }
+);
 
 // Auth services
 export const authService = {
   register: async (userData) => {
     const response = await api.post('/users/register', userData);
+    if (response.data.user) {
+      localStorage.setItem('user', JSON.stringify(response.data.user));
+    }
     return response.data;
   },
 
   login: async (credentials) => {
     const response = await api.post('/users/login', credentials);
     if (response.data.user) {
-      localStorage.setItem('userId', response.data.user._id);
+      localStorage.setItem('user', JSON.stringify(response.data.user));
     }
     return response.data;
   },
 
   logout: () => {
-    localStorage.removeItem('userId');
+    localStorage.removeItem('user');
   },
 
   getCurrentUser: async () => {
-    const response = await api.get('/users/me');
-    return response.data;
+    const user = JSON.parse(localStorage.getItem('user'));
+    if (!user) {
+      throw new Error('No user found');
+    }
+    return user;
   }
 };
 
 // Ticket services
 export const ticketService = {
   createTicket: async (ticketData) => {
-    const response = await api.post('/tickets', ticketData);
-    return response.data;
+    try {
+      console.log('API: Creating ticket with data:', ticketData);
+      const response = await api.post('/tickets', ticketData);
+      console.log('API: Ticket creation response:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('API: Error creating ticket:', error.response?.data || error.message);
+      throw error;
+    }
   },
 
   getTickets: async (filters = {}) => {
@@ -89,7 +115,7 @@ export const ticketService = {
 
 // Analytics services
 export const analyticsService = {
-  getTicketStats: async () => {
+  getStats: async () => {
     const response = await api.get('/analytics/ticket-stats');
     return response.data;
   },

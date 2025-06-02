@@ -18,25 +18,60 @@ function Dashboard() {
     const fetchData = async () => {
       try {
         setLoading(true);
+        setError('');
+
         // Fetch current user
         const userData = await authService.getCurrentUser();
         setUser(userData);
-        // Fetch tickets
+        
+        // Fetch tickets based on user role
         const ticketsData = await ticketService.getTickets();
         setTickets(ticketsData);
-        // Fetch analytics
-        const analyticsData = await analyticsService.getStats();
-        setStats(analyticsData);
-        // Overdue tickets
-        setOverdueTickets(ticketsData.filter(t => t.slaResolutionDue && new Date(t.slaResolutionDue) < new Date() && t.status !== 'Resolved' && t.status !== 'Closed'));
-        // User tickets
+        
+        // Calculate stats from tickets data
+        const calculatedStats = {
+          total: ticketsData.length,
+          open: ticketsData.filter(t => t.status === 'Open').length,
+          inProgress: ticketsData.filter(t => t.status === 'In Progress').length,
+          overdue: ticketsData.filter(t => 
+            t.slaResolutionDue && 
+            new Date(t.slaResolutionDue) < new Date() && 
+            t.status !== 'Resolved' && 
+            t.status !== 'Closed'
+          ).length,
+          critical: ticketsData.filter(t => t.priority === 'Critical').length,
+          pendingApproval: ticketsData.filter(t => t.approvalStatus === 'Pending').length
+        };
+        setStats(calculatedStats);
+        
+        // Filter overdue tickets
+        setOverdueTickets(ticketsData.filter(t => 
+          t.slaResolutionDue && 
+          new Date(t.slaResolutionDue) < new Date() && 
+          t.status !== 'Resolved' && 
+          t.status !== 'Closed'
+        ));
+
+        // Filter user tickets based on role
         if (userData.role === 'agent' || userData.role === 'admin') {
-          setUserTickets(ticketsData.filter(t => t.assignedTo === userData.firstName + ' ' + userData.lastName));
-          setPendingApprovals(ticketsData.filter(t => t.approvalStatus === 'Pending'));
+          // For agents and admins, show tickets assigned to them
+          setUserTickets(ticketsData.filter(t => 
+            t.assignedTo && 
+            t.assignedTo._id === userData._id
+          ));
+          // Show pending approvals for agents and admins
+          setPendingApprovals(ticketsData.filter(t => 
+            t.approvalStatus === 'Pending'
+          ));
         } else {
-          setUserTickets(ticketsData.filter(t => t.requesterEmail === userData.email));
+          // For regular users, show only their created tickets
+          setUserTickets(ticketsData.filter(t => 
+            t.requester && 
+            t.requester.userId === userData._id
+          ));
         }
       } catch (err) {
+        console.error('Dashboard data fetch error:', err);
         setError(err.response?.data?.message || 'Failed to fetch dashboard data');
       } finally {
         setLoading(false);
