@@ -66,5 +66,5 @@ jobs:
           PORT: ${{ secrets.PORT }}
           MONGO_URI: ${{ secrets.MONGO_URI }}
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
-          FRONTEND_URL ${{ secrets.FRONTEND_URL}}
+          FRONTEND_URL ${{ secrets.FRONTEND_URL }}
           
