@@ -110,16 +110,12 @@ const TicketsTable = () => {
                   <td>{ticket.assignee?.username || 'Unassigned'}</td>
                 )}
                 <td>
-                  {/* For admin, only show 'View' (was Edit) button, remove View button */}
-                  {user?.role === 'admin' ? (
+                  {/* For admin/agent, show 'View' (was Edit) button that goes to edit page */}
+                  {user?.role === 'admin' || user?.role === 'agent' ? (
                     <Link to={`/tickets/${ticket._id}/edit`} className="edit-btn">View</Link>
                   ) : (
-                    <>
-                      <Link to={`/tickets/${ticket._id}`} className="view-btn">View</Link>
-                      {(user?.role === 'agent') && (
-                        <Link to={`/tickets/${ticket._id}/edit`} className="edit-btn">Edit</Link>
-                      )}
-                    </>
+                    /* For regular users, show 'View' button that goes to detail page */
+                    <Link to={`/tickets/${ticket._id}`} className="view-btn">View</Link>
                   )}
                 </td>
               </tr>

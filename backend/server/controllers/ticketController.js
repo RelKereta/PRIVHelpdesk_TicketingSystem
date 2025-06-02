@@ -94,7 +94,7 @@ const getTickets = async (req, res) => {
     
     if (!user) {
       console.log('User not found for ID:', userId);
-      return res.status(404).json({ 
+      return res.status(401).json({ 
         message: 'User not found. Please log in again.',
         code: 'USER_NOT_FOUND'
       });
@@ -118,6 +118,18 @@ const getTickets = async (req, res) => {
     const tickets = await Ticket.find(query).sort({ createdAt: -1 });
     
     console.log('Tickets found:', tickets.length);
+    
+    // Debug the first few tickets to see their structure
+    if (tickets.length > 0) {
+      console.log('Sample tickets for user:', tickets.slice(0, 3).map(ticket => ({
+        ticketId: ticket._id.toString(),
+        title: ticket.title,
+        requesterUserId: ticket.requester?.userId?.toString(),
+        requesterUsername: ticket.requester?.username,
+        assigneeUserId: ticket.assignee?.userId?.toString()
+      })));
+    }
+    
     res.json(tickets);
   } catch (error) {
     console.error('Error fetching tickets:', {
@@ -138,11 +150,27 @@ const getTicketById = async (req, res) => {
   try {
     const { id } = req.params;
     const userId = req.headers['x-user-id'];
+    
+    console.log('=== GET TICKET BY ID DEBUG ===');
+    console.log('Ticket ID requested:', id);
+    console.log('User ID from headers:', userId);
+    
+    // Check if user ID is provided
+    if (!userId) {
+      return res.status(401).json({ message: 'Authentication required' });
+    }
+    
     const user = await User.findById(userId);
     
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(401).json({ message: 'User not found. Please log in again.' });
     }
+
+    console.log('Requesting user details:', {
+      userId: user._id.toString(),
+      username: user.username,
+      role: user.role
+    });
 
     const ticket = await Ticket.findById(id)
       .populate('requester.userId', 'firstName lastName email department')
@@ -150,14 +178,39 @@ const getTicketById = async (req, res) => {
       .populate('comments.author.userId', 'firstName lastName');
 
     if (!ticket) {
+      console.log('ERROR: Ticket not found in database');
       return res.status(404).json({ message: 'Ticket not found' });
     }
 
+    console.log('Found ticket details:', {
+      ticketId: ticket._id.toString(),
+      title: ticket.title,
+      requesterUserId: ticket.requester?.userId?.toString(),
+      requesterUsername: ticket.requester?.username,
+      assigneeUserId: ticket.assignee?.userId?.toString(),
+      assigneeUsername: ticket.assignee?.username
+    });
+
+    // Debug the access check
+    console.log('=== ACCESS CHECK DEBUG ===');
+    const isRequester = ticket.requester.userId.toString() === user._id.toString();
+    const isAssignee = ticket.assignee && ticket.assignee.userId && ticket.assignee.userId.toString() === user._id.toString();
+    const isAdmin = user.role === 'admin';
+    
+    console.log('Access check results:', {
+      isRequester,
+      isAssignee,
+      isAdmin,
+      userCanAccess: isRequester || isAssignee || isAdmin
+    });
+
     // Check if user can access this ticket
     if (!user.canAccessTicket(ticket)) {
-      return res.status(403).json({ message: 'Access denied' });
+      console.log('ERROR: Access denied - user cannot access this ticket');
+      return res.status(403).json({ message: 'Access denied. You can only view tickets you created or are assigned to.' });
     }
 
+    console.log('SUCCESS: User can access ticket, returning data');
     res.json(ticket);
   } catch (error) {
     console.error('Error fetching ticket:', error);
@@ -352,10 +405,16 @@ const addComment = async (req, res) => {
     const { id } = req.params;
     const { text } = req.body;
     const userId = req.headers['x-user-id'];
+    
+    // Check if user ID is provided
+    if (!userId) {
+      return res.status(401).json({ message: 'Authentication required' });
+    }
+    
     const user = await User.findById(userId);
     
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(401).json({ message: 'User not found. Please log in again.' });
     }
 
     const ticket = await Ticket.findById(id);
@@ -365,7 +424,7 @@ const addComment = async (req, res) => {
 
     // Check if user can access this ticket
     if (!user.canAccessTicket(ticket)) {
-      return res.status(403).json({ message: 'Access denied' });
+      return res.status(403).json({ message: 'Access denied. You can only comment on tickets you created or are assigned to.' });
     }
 
     const comment = {
@@ -373,7 +432,8 @@ const addComment = async (req, res) => {
       author: {
         userId: user._id,
         username: user.username
-      }
+      },
+      createdAt: new Date()
     };
 
     ticket.comments.push(comment);

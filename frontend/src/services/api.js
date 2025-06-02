@@ -34,15 +34,16 @@ api.interceptors.response.use(
       url: error.config?.url
     });
 
-    // Handle authentication and authorization errors
-    if (error.response?.status === 401 || error.response?.status === 403) {
-      console.log('Authentication/Authorization error detected, redirecting to signin...');
+    // Only handle authentication errors (401), not authorization errors (403)
+    // 403 means the user is authenticated but doesn't have permission - this is valid
+    if (error.response?.status === 401) {
+      console.log('Authentication error detected, redirecting to signin...');
       localStorage.removeItem('user');
       window.location.href = '/signin';
       return Promise.reject(error);
     }
     
-    // Return the error for other types of errors
+    // Return the error for all other types of errors (including 403)
     return Promise.reject(error);
   }
 );

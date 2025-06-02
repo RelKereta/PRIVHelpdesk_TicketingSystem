@@ -21,6 +21,7 @@ import BulkResolve from './pages/BulkResolve';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
 import TicketEdit from './pages/TicketEdit';
+import TicketDetail from './pages/TicketDetail';
 
 const ProtectedRoute = ({ children, requiredPermission = null }) => {
   const user = JSON.parse(localStorage.getItem('user'));
@@ -105,6 +106,7 @@ function AppContent() {
           <Route path="/chatbot" element={<ProtectedRoute><Chatbot /></ProtectedRoute>} />
           <Route path="/create-ticket" element={<ProtectedRoute><CreateTicket /></ProtectedRoute>} />
           <Route path="/tickets/:id/edit" element={<ProtectedRoute requiredPermission="admin"><TicketEdit /></ProtectedRoute>} />
+          <Route path="/tickets/:id" element={<ProtectedRoute><TicketDetail /></ProtectedRoute>} />
           <Route path="/all-tickets" element={<ProtectedRoute><AllTickets /></ProtectedRoute>} />
           <Route path="/assign-tickets" element={<ProtectedRoute><AssignTickets /></ProtectedRoute>} />
           <Route path="/reports" element={<ProtectedRoute><ReportsPage /></ProtectedRoute>} />

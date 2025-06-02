@@ -352,7 +352,14 @@ function Community() {
               <div className="table-cell actions">
                 <button 
                   className="btn-sm btn-primary"
-                  onClick={() => window.location.href = `/tickets/${ticket._id}/edit`}
+                  onClick={() => {
+                    const userData = JSON.parse(localStorage.getItem('user'));
+                    if (userData?.role === 'admin' || userData?.role === 'agent') {
+                      window.location.href = `/tickets/${ticket._id}/edit`;
+                    } else {
+                      window.location.href = `/tickets/${ticket._id}`;
+                    }
+                  }}
                 >
                   View
                 </button>
