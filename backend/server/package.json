@@ -14,8 +14,7 @@
     "express": "^4.18.2",
     "jsonwebtoken": "^9.0.0",
     "mongoose": "^7.8.7",
-    "multer": "^2.0.0",
-    "denser-ai": "^1.0.0"
+    "multer": "^2.0.0"
   },
   "devDependencies": {
     "nodemon": "^3.1.10"
