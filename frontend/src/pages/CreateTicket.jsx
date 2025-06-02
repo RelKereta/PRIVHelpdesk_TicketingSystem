@@ -39,12 +39,15 @@ const CreateTicket = () => {
 
     try {
       // Format the data according to the backend expectations
-      const ticketData = {
-        title: formData.title.trim(),
-        description: formData.description.trim(),
-        category: formData.category,
-        priority: formData.priority.charAt(0).toUpperCase() + formData.priority.slice(1) // Capitalize first letter
-      };
+      const ticketData = new FormData();
+      ticketData.append('title', formData.title.trim());
+      ticketData.append('description', formData.description.trim());
+      ticketData.append('category', formData.category);
+      ticketData.append('priority', formData.priority.charAt(0).toUpperCase() + formData.priority.slice(1));
+
+      formData.attachments.forEach(file => {
+        ticketData.append('attachments', file);
+      });
 
       console.log('Submitting ticket data:', ticketData);
       const response = await ticketService.createTicket(ticketData);
@@ -59,96 +62,110 @@ const CreateTicket = () => {
   };
 
   return (
-    <div className="create-ticket-container">
-      <h2>Create New Ticket</h2>
-      {error && <div className="error-message">{error}</div>}
+    <div className="create-ticket-page">
+      <div className="create-ticket-header">
+        <h1>Create New Ticket</h1>
+        {error && <div className="error-message">{error}</div>}
+      </div>
       
-      <form onSubmit={handleSubmit} className="create-ticket-form">
-        <div className="form-group">
-          <label htmlFor="title">Title</label>
-          <input
-            type="text"
-            id="title"
-            name="title"
-            value={formData.title}
-            onChange={handleChange}
-            required
-            placeholder="Brief description of the issue"
-          />
-        </div>
-
-        <div className="form-group">
-          <label htmlFor="description">Description</label>
-          <textarea
-            id="description"
-            name="description"
-            value={formData.description}
-            onChange={handleChange}
-            required
-            placeholder="Detailed description of the issue"
-            rows="5"
-          />
-        </div>
-
-        <div className="form-row">
+      <form onSubmit={handleSubmit} className="ticket-form">
+        <div className="form-section">
           <div className="form-group">
-            <label htmlFor="priority">Priority</label>
-            <select
-              id="priority"
-              name="priority"
-              value={formData.priority}
+            <label htmlFor="title">Title</label>
+            <input
+              type="text"
+              id="title"
+              name="title"
+              value={formData.title}
               onChange={handleChange}
               required
-            >
-              <option value="low">Low</option>
-              <option value="medium">Medium</option>
-              <option value="high">High</option>
-              <option value="critical">Critical</option>
-            </select>
+              placeholder="Brief description of the issue"
+              className="form-input"
+            />
           </div>
 
           <div className="form-group">
-            <label htmlFor="category">Category</label>
-            <select
-              id="category"
-              name="category"
-              value={formData.category}
+            <label htmlFor="description">Description</label>
+            <textarea
+              id="description"
+              name="description"
+              value={formData.description}
               onChange={handleChange}
               required
-            >
-              <option value="">Select a category</option>
-              <option value="Hardware">Hardware</option>
-              <option value="Software">Software</option>
-              <option value="Network">Network</option>
-              <option value="Account">Account</option>
-              <option value="Other">Other</option>
-            </select>
+              placeholder="Detailed description of the issue"
+              rows="5"
+              className="form-textarea"
+            />
           </div>
         </div>
 
-        <div className="form-group">
-          <label htmlFor="attachments">Attachments</label>
-          <input
-            type="file"
-            id="attachments"
-            multiple
-            onChange={handleFileChange}
-            className="file-input"
-          />
-          {formData.attachments.length > 0 && (
-            <div className="attachments-list">
-              {formData.attachments.map((file, index) => (
-                <div key={index} className="attachment-item">
-                  {file.name}
-                </div>
-              ))}
+        <div className="form-section">
+          <div className="form-row">
+            <div className="form-group">
+              <label htmlFor="priority">Priority</label>
+              <select
+                id="priority"
+                name="priority"
+                value={formData.priority}
+                onChange={handleChange}
+                required
+                className="form-input"
+              >
+                <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high">High</option>
+                <option value="critical">Critical</option>
+              </select>
             </div>
-          )}
+
+            <div className="form-group">
+              <label htmlFor="category">Category</label>
+              <select
+                id="category"
+                name="category"
+                value={formData.category}
+                onChange={handleChange}
+                required
+                className="form-input"
+              >
+                <option value="">Select a category</option>
+                <option value="Hardware">Hardware</option>
+                <option value="Software">Software</option>
+                <option value="Network">Network</option>
+                <option value="Account">Account</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+          </div>
         </div>
 
-        <button type="submit" className="submit-button" disabled={loading}>
-          {loading ? 'Creating...' : 'Create Ticket'}
-        </button>
+        <div className="form-section">
+          <div className="form-group">
+            <label htmlFor="attachments">Attachments</label>
+            <input
+              type="file"
+              id="attachments"
+              multiple
+              onChange={handleFileChange}
+              className="file-input"
+            />
+            {formData.attachments.length > 0 && (
+              <div className="attachments-list">
+                {formData.attachments.map((file, index) => (
+                  <div key={index} className="attachment-item">
+                    <span className="file-name">{file.name}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="form-actions">
+          <button type="submit" className="submit-button" disabled={loading}>
+            {loading ? 'Creating...' : 'Create Ticket'}
+          </button>
+        </div>
       </form>
     </div>
   );
