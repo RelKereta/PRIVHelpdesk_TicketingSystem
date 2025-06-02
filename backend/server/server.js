@@ -10,6 +10,7 @@ const fileRoutes = require('./routes/fileRoutes');
 const healthRoutes = require('./routes/healthRoutes');
 const config = require('./config/config');
 const solutionRoutes = require('./routes/solutionRoutes');
+const denserAI = require('denser-ai');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -31,6 +32,13 @@ app.use('/api/solutions', solutionRoutes);
 // Health check route
 app.get('/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date() });
+});
+
+// Live Chatbot Route
+app.post('/api/chatbot', (req, res) => {
+  const { message } = req.body;
+  const response = denserAI.processMessage(message);
+  res.json({ response });
 });
 
 // Error handling middleware
