@@ -2,17 +2,17 @@ version: "3.8"
 
 services:
   backend:
-    image: juwono136/todolist-backend:latest
+    image: marputtt/PRIV-backend:latest
     restart: always
     environment:
-      PORT: ${5000}
+      PORT: ${3000}
       CONNECTION_URL: ${MONGODB_URI}
       REFRESH_TOKEN_SECRET: ${PRIV_Helpdesk_2024_Secure_JWT_Secret_Key_8x9y2z1w4v3u6t7s}
     ports:
       - "3014:3014"
 
   frontend:
-    image: juwono136/todolist-frontend:latest
+    image: marputtt/PRIV-frontend:latest
     restart: always
     depends_on:
       - backend
