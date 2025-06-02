@@ -3,6 +3,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors'); // <-- Import cors
 const connectToDatabase = require('./connect');
+const ticketRoutes = require('./routes/ticketRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -12,31 +13,35 @@ const Ticket = require('./models/ticket');
 app.use(cors());  // <-- Use cors middleware
 app.use(express.json());
 
+// Routes
+app.use('/api/tickets', ticketRoutes);
+
+// Health check route
+app.get('/health', (req, res) => {
+  res.json({ status: 'OK', timestamp: new Date() });
+});
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({
+    message: 'Something went wrong!',
+    error: process.env.NODE_ENV === 'development' ? err.message : undefined
+  });
+});
+
 // Connect to DB
 (async () => {
-  await connectToDatabase();
-
-  // POST route for creating a ticket
-  app.post('/api/tickets', async (req, res) => {
-    try {
-      const ticket = new Ticket(req.body);
-      await ticket.save();
-      res.status(201).json(ticket);
-    } catch (error) {
-      console.error('Error creating ticket:', error);
-      res.status(400).json({ message: error.message });
-    }
-  });
-
-  // Example route
-  app.get('/', (req, res) => {
-    res.send('Hello, World!');
-  });
-
-  // Start the server
-  app.listen(PORT, () => {
-    console.log(`🚀 Server is running on port ${PORT}`);
-  });
+  try {
+    await connectToDatabase();
+    
+    app.listen(PORT, () => {
+      console.log(`🚀 Server is running on port ${PORT}`);
+    });
+  } catch (error) {
+    console.error('Failed to start server:', error);
+    process.exit(1);
+  }
 })();
 
 // Graceful shutdown
@@ -45,7 +50,6 @@ process.on('SIGINT', async () => {
   console.log('🛑 MongoDB connection closed.');
   process.exit(0);
 });
-
 
 // require('dotenv').config(); // Load environment variables early
 // const express = require('express');
