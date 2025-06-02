@@ -167,6 +167,16 @@ export const ticketService = {
     }
   },
 
+  bulkResolveTickets: async (ticketIds, resolution) => {
+    try {
+      const response = await api.post('/tickets/bulk-resolve', { ticketIds, resolution });
+      return response.data;
+    } catch (error) {
+      console.error('API: Error bulk resolving tickets:', error.response?.data || error.message);
+      throw error;
+    }
+  },
+
   deleteTicket: async (id) => {
     try {
       const response = await api.delete(`/tickets/${id}`);
@@ -251,6 +261,11 @@ export const solutionService = {
 export const userService = {
   getUsers: async () => {
     const response = await api.get('/users');
+    return response.data;
+  },
+
+  getAgentsAndAdmins: async () => {
+    const response = await api.get('/users/agents-admins');
     return response.data;
   },
 

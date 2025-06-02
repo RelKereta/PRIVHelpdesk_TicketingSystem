@@ -42,6 +42,14 @@ const userSchema = new mongoose.Schema({
     required: true,
     enum: ['IT', 'HR', 'Finance', 'Operations', 'Marketing', 'Sales', 'Other']
   },
+  phone: {
+    type: String,
+    trim: true
+  },
+  position: {
+    type: String,
+    trim: true
+  },
   // Tickets created by this user
   createdTickets: [{
     ticketId: {

@@ -78,7 +78,7 @@
   font-size: 0.9rem;
 }
 
-.form-input, .form-textarea {
+.form-input, .form-textarea, .form-select {
   padding: 12px 15px;
   border: 1px solid #ddd;
   border-radius: 6px;
@@ -87,13 +87,10 @@
   font-family: inherit;
   width: 100%;
   box-sizing: border-box;
+  background: white;
+
 }
 
-.form-input:focus, .form-textarea:focus {
-  outline: none;
-  border-color: #007bff;
-  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
-}
 
 .form-textarea {
   resize: vertical;
@@ -257,6 +254,25 @@
   cursor: not-allowed;
 }
 
+/* Error Message */
+.error-message {
+  background-color: #f8d7da;
+  color: #721c24;
+  padding: 12px 15px;
+  border-radius: 6px;
+  margin-bottom: 20px;
+  font-size: 0.9rem;
+  border: 1px solid #f5c6cb;
+}
+
+/* Loading State */
+.loading-state {
+  text-align: center;
+  padding: 40px;
+  color: #666;
+  font-size: 1.1rem;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .create-ticket-page {
@@ -324,7 +340,7 @@
     font-size: 1.1rem;
   }
 
-  .form-input, .form-textarea {
+  .form-input, .form-textarea, .form-select {
     padding: 10px 12px;
   }
 

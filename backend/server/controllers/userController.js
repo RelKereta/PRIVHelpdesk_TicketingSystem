@@ -100,6 +100,51 @@ exports.getAllUsers = async (req, res) => {
   }
 };
 
+// Get agents and admins (accessible by agents and admins)
+exports.getAgentsAndAdmins = async (req, res) => {
+  try {
+    // If we're here through the auth middleware, req.user should exist
+    // But let's add extra safety checks
+    const userId = req.headers['x-user-id'];
+    
+    if (!userId) {
+      return res.status(401).json({ 
+        message: 'Authentication required. Please log in to access this resource.',
+        code: 'NO_USER_ID'
+      });
+    }
+
+    const requestingUser = await User.findById(userId);
+    if (!requestingUser) {
+      return res.status(401).json({ 
+        message: 'User not found. Please log in again.',
+        code: 'USER_NOT_FOUND'
+      });
+    }
+
+    // Check if the requesting user is an agent or admin
+    if (!['agent', 'admin'].includes(requestingUser.role)) {
+      return res.status(403).json({ 
+        message: 'Access denied. Only agents and administrators can access this resource.',
+        code: 'INSUFFICIENT_PERMISSIONS'
+      });
+    }
+
+    const users = await User.find({ role: { $in: ['agent', 'admin'] } })
+      .select('-password')
+      .sort({ createdAt: -1 });
+    
+    res.json(users);
+  } catch (error) {
+    console.error('Error fetching agents and admins:', error);
+    res.status(500).json({ 
+      message: 'Internal server error while fetching agents and admins',
+      error: error.message,
+      code: 'INTERNAL_ERROR'
+    });
+  }
+};
+
 // Get user by ID (admin only)
 exports.getUserById = async (req, res) => {
   try {

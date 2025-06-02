@@ -2,11 +2,10 @@ import React, { useState, useEffect } from 'react';
 import TicketsTable from '../components/TicketsTable.jsx';
 import ErrorBoundary from '../components/ErrorBoundary.jsx';
 import './Dashboard.css';
-import { ticketService, analyticsService, authService } from '../services/api';
+import { ticketService, authService } from '../services/api';
 
 function Dashboard() {
   const [user, setUser] = useState(null);
-  const [tickets, setTickets] = useState([]);
   const [stats, setStats] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -31,7 +30,6 @@ function Dashboard() {
         
         // Fetch tickets based on user role
         const ticketsData = await ticketService.getTickets();
-        setTickets(ticketsData);
         
         // Calculate stats from tickets data
         const calculatedStats = {
@@ -39,8 +37,8 @@ function Dashboard() {
           open: ticketsData.filter(t => t.status === 'Open').length,
           inProgress: ticketsData.filter(t => t.status === 'In Progress').length,
           overdue: ticketsData.filter(t => 
-            t.slaResolutionDue && 
-            new Date(t.slaResolutionDue) < new Date() && 
+            t.slaDeadline && 
+            new Date(t.slaDeadline) < new Date() && 
             t.status !== 'Resolved' && 
             t.status !== 'Closed'
           ).length,
@@ -51,8 +49,8 @@ function Dashboard() {
         
         // Filter overdue tickets
         setOverdueTickets(ticketsData.filter(t => 
-          t.slaResolutionDue && 
-          new Date(t.slaResolutionDue) < new Date() && 
+          t.slaDeadline && 
+          new Date(t.slaDeadline) < new Date() && 
           t.status !== 'Resolved' && 
           t.status !== 'Closed'
         ));
@@ -61,8 +59,8 @@ function Dashboard() {
         if (userData.role === 'agent' || userData.role === 'admin') {
           // For agents and admins, show tickets assigned to them
           setUserTickets(ticketsData.filter(t => 
-            t.assignedTo && 
-            t.assignedTo._id === userData._id
+            t.assignee && 
+            t.assignee.userId === userData._id
           ));
           // Show pending approvals for agents and admins
           setPendingApprovals(ticketsData.filter(t => 
@@ -92,24 +90,6 @@ function Dashboard() {
     };
     fetchData();
   }, []);
-
-  const handleStatusChange = async (ticketId, newStatus) => {
-    try {
-      await ticketService.updateTicket(ticketId, { status: newStatus });
-      const updatedTickets = await ticketService.getTickets();
-      setTickets(updatedTickets);
-    } catch (err) {
-      setError(err.response?.data?.message || 'Failed to update ticket status');
-    }
-  };
-
-  const handleQuickApprove = (ticketId, approved) => {
-    // Implement if needed
-  };
-
-  const handleQuickResolve = (ticketId, resolution) => {
-    // Implement if needed
-  };
 
   const getPriorityColor = (priority) => {
     switch (priority) {
@@ -233,7 +213,7 @@ function Dashboard() {
                     <span className="ticket-id">{ticket.ticketNumber}</span>
                     <span className="ticket-subject">{ticket.title}</span>
                     <span className="overdue-time">
-                      {formatTimeRemaining(ticket.slaResolutionDue)} overdue
+                      {formatTimeRemaining(ticket.slaDeadline)} overdue
                     </span>
                   </div>
                 ))}
@@ -262,22 +242,8 @@ function Dashboard() {
                       </span>
                     </div>
                     <h4>{ticket.title}</h4>
-                    <p className="requester">Requested by: {ticket.requesterName}</p>
+                    <p className="requester">Requested by: {ticket.requester?.username}</p>
                     <p className="description">{ticket.description}</p>
-                    <div className="approval-actions">
-                      <button 
-                        onClick={() => handleQuickApprove(ticket._id, true)}
-                        className="approve-btn"
-                      >
-                        Approve
-                      </button>
-                      <button 
-                        onClick={() => handleQuickApprove(ticket._id, false)}
-                        className="reject-btn"
-                      >
-                        Reject
-                      </button>
-                    </div>
                   </div>
                 ))}
               </div>
@@ -288,16 +254,28 @@ function Dashboard() {
             <div className="dashboard-section">
               <h2>Quick Actions</h2>
               <div className="quick-actions">
-                <button className="action-btn primary">
+                <button 
+                  className="action-btn primary"
+                  onClick={() => window.location.href = '/all-tickets'}
+                >
                   📋 View All Tickets
                 </button>
-                <button className="action-btn secondary">
+                <button 
+                  className="action-btn secondary"
+                  onClick={() => window.location.href = '/assign-tickets'}
+                >
                   👥 Assign Tickets
                 </button>
-                <button className="action-btn success">
+                <button 
+                  className="action-btn success"
+                  onClick={() => window.location.href = '/bulk-resolve'}
+                >
                   ✅ Bulk Resolve
                 </button>
-                <button className="action-btn info">
+                <button 
+                  className="action-btn info"
+                  onClick={() => window.location.href = '/reports'}
+                >
                   📊 Generate Report
                 </button>
               </div>
@@ -333,23 +311,13 @@ function Dashboard() {
                     <h4>{ticket.title}</h4>
                     <div className="ticket-meta">
                       <span>Created: {new Date(ticket.createdAt).toLocaleDateString()}</span>
-                      <span>SLA: {formatTimeRemaining(ticket.slaResolutionDue)}</span>
+                      <span>SLA: {formatTimeRemaining(ticket.slaDeadline)}</span>
                     </div>
-                    {(isTechnician() || isAdmin()) && ticket.status === 'Open' && (
-                      <div className="ticket-actions">
-                        <button 
-                          onClick={() => handleQuickResolve(ticket._id, 'Quick resolution from dashboard')}
-                          className="resolve-btn"
-                        >
-                          Quick Resolve
-                        </button>
-                      </div>
-                    )}
                   </div>
                 ))}
                 {userTickets.length > 5 && (
                   <div className="view-all-link">
-                    <a href="#tickets">View all {userTickets.length} tickets →</a>
+                    <a href="/all-tickets">View all {userTickets.length} tickets →</a>
                   </div>
                 )}
               </div>
