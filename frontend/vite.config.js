@@ -1,6 +1,5 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
-import tailwindcss from '@tailwindcss/vite'
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
@@ -9,7 +8,7 @@ export default defineConfig(({ mode }) => {
       proxy: {
         "/api": {
           target: mode === "development"
-            ? "http://localhost:5000"
+            ? "http://localhost:5173"
             : "e2425-wads-l4acg7-server.csbihub.id",
           changeOrigin: true,
           secure: mode !== "development",
@@ -20,6 +19,6 @@ export default defineConfig(({ mode }) => {
     build: {
       outDir: "dist",
     },
-    plugins: [react(), tailwindcss()],
+    plugins: [react()],
   }
 })
