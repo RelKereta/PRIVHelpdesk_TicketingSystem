@@ -12,7 +12,7 @@ async function initializeDatabase() {
             useNewUrlParser: true,
             useUnifiedTopology: true
         });
-        console.log('✅ Connected to MongoDB Atlas successfully');
+        console.log('✅ Connected to MongoDB successfully');
 
         // Clear existing data
         await User.deleteMany({});

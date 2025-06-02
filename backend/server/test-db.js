@@ -4,14 +4,14 @@ require('dotenv').config();
 
 async function testConnection() {
     try {
-        console.log('🔍 Testing MongoDB Atlas connection...');
+        console.log('🔍 Testing MongoDB connection...');
         
         // Connect to MongoDB
         await mongoose.connect(process.env.MONGODB_URI, {
             useNewUrlParser: true,
             useUnifiedTopology: true
         });
-        console.log('✅ Connected to MongoDB Atlas successfully');
+        console.log('✅ Connected to MongoDB successfully');
 
         // Create a test user
         const testUser = new User({

@@ -6,7 +6,7 @@ module.exports = {
   nodeEnv: process.env.NODE_ENV || 'development',
 
   // MongoDB configuration
-  mongoUri: process.env.MONGO_URI || 'mongodb+srv://marputtt:admin@clusterwads.mfcml5y.mongodb.net/PRIVData',
+  mongoUri: process.env.MONGO_URI || 'mongodb://e2425-wads-l4acg7:s5oy5dri@localhost:27018/e2425-wads-l4acg7?authSource=e2425-wads-l4acg7',
 
   // File upload configuration
   uploadDir: 'uploads',
