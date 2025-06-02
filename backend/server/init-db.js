@@ -8,7 +8,7 @@ async function initializeDatabase() {
         console.log('🔍 Initializing database...');
         
         // Connect to MongoDB
-        await mongoose.connect(process.env.MONGODB_URI, {
+        await mongoose.connect(process.env.MONGO_URI, {
             useNewUrlParser: true,
             useUnifiedTopology: true
         });
@@ -50,53 +50,78 @@ async function initializeDatabase() {
             }
         ];
 
-        const createdUsers = await User.insertMany(users);
+        // Create users one by one to ensure pre-save middleware works for password hashing
+        const createdUsers = [];
+        for (const userData of users) {
+            const user = new User(userData);
+            await user.save();
+            createdUsers.push(user);
+        }
         console.log('✅ Created sample users');
 
         // Create sample tickets
         const tickets = [
             {
-                ticketNumber: 'TICKET-000001',
-                subject: "System Login Issue",
+                title: "System Login Issue",
                 description: "Unable to login to the system since morning",
                 priority: "High",
-                type: "Technical Issue",
                 category: "Software",
-                department: "IT",
                 status: "Open",
-                createdBy: createdUsers[2]._id, // Regular user
-                assignedTo: createdUsers[1]._id, // Agent
+                requester: {
+                    userId: createdUsers[2]._id,
+                    username: createdUsers[2].username,
+                    email: createdUsers[2].email,
+                    department: createdUsers[2].department
+                },
+                assignee: {
+                    userId: createdUsers[1]._id,
+                    username: createdUsers[1].username
+                },
                 comments: [{
-                    user: createdUsers[1]._id,
-                    text: "Looking into this issue"
+                    text: "Looking into this issue",
+                    author: {
+                        userId: createdUsers[1]._id,
+                        username: createdUsers[1].username
+                    }
                 }]
             },
             {
-                ticketNumber: 'TICKET-000002',
-                subject: "New Feature Request",
+                title: "New Feature Request",
                 description: "Need ability to export reports to PDF",
                 priority: "Medium",
-                type: "Feature Request",
                 category: "Software",
-                department: "IT",
                 status: "In Progress",
-                createdBy: createdUsers[2]._id,
-                assignedTo: createdUsers[1]._id
+                requester: {
+                    userId: createdUsers[2]._id,
+                    username: createdUsers[2].username,
+                    email: createdUsers[2].email,
+                    department: createdUsers[2].department
+                },
+                assignee: {
+                    userId: createdUsers[1]._id,
+                    username: createdUsers[1].username
+                }
             },
             {
-                ticketNumber: 'TICKET-000003',
-                subject: "Printer Not Working",
+                title: "Printer Not Working",
                 description: "Office printer showing error code E-01",
                 priority: "Low",
-                type: "Bug",
                 category: "Hardware",
-                department: "IT",
                 status: "Open",
-                createdBy: createdUsers[2]._id
+                requester: {
+                    userId: createdUsers[2]._id,
+                    username: createdUsers[2].username,
+                    email: createdUsers[2].email,
+                    department: createdUsers[2].department
+                }
             }
         ];
 
-        await Ticket.insertMany(tickets);
+        // Create tickets one by one to ensure pre-save middleware works
+        for (const ticketData of tickets) {
+            const ticket = new Ticket(ticketData);
+            await ticket.save();
+        }
         console.log('✅ Created sample tickets');
 
         // Verify data

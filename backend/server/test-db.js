@@ -6,41 +6,50 @@ async function testConnection() {
     try {
         console.log('🔍 Testing MongoDB connection...');
         
-        // Connect to MongoDB
-        await mongoose.connect(process.env.MONGODB_URI, {
+        // Connect to MongoDB using the correct env variable
+        await mongoose.connect(process.env.MONGO_URI, {
             useNewUrlParser: true,
             useUnifiedTopology: true
         });
         console.log('✅ Connected to MongoDB successfully');
 
-        // Create a test user
-        const testUser = new User({
-            username: 'testuser',
-            email: 'test@example.com',
-            password: 'password123',
-            firstName: 'Test',
-            lastName: 'User',
-            department: 'IT',
-            role: 'user'
+        // Check existing users
+        const users = await User.find({});
+        console.log(`\n📊 Found ${users.length} users in database:`);
+        
+        users.forEach((user, index) => {
+            console.log(`\n👤 User ${index + 1}:`);
+            console.log(`  Username: ${user.username}`);
+            console.log(`  Email: ${user.email}`);
+            console.log(`  Role: ${user.role}`);
+            console.log(`  Has password: ${user.password ? 'Yes' : 'No'}`);
+            console.log(`  Password length: ${user.password ? user.password.length : 0}`);
         });
 
-        await testUser.save();
-        console.log('✅ Test user created successfully:', testUser);
-
-        // Find the test user
-        const foundUser = await User.findOne({ email: 'test@example.com' });
-        console.log('✅ Test user retrieved successfully:', foundUser);
-
-        // Clean up - remove test user
-        await User.deleteOne({ email: 'test@example.com' });
-        console.log('✅ Test user removed successfully');
+        // Test authentication with admin user
+        const adminUser = await User.findOne({ email: 'admin@priv.com' });
+        if (adminUser) {
+            console.log('\n🔐 Testing admin authentication:');
+            try {
+                const isValidPassword = await adminUser.comparePassword('admin123');
+                console.log(`  ✅ Password "admin123" is valid: ${isValidPassword}`);
+                
+                // Also test a wrong password
+                const isInvalidPassword = await adminUser.comparePassword('wrongpassword');
+                console.log(`  ❌ Password "wrongpassword" is valid: ${isInvalidPassword}`);
+            } catch (error) {
+                console.log(`  ❌ Password comparison error: ${error.message}`);
+            }
+        } else {
+            console.log('\n❌ Admin user not found');
+        }
 
     } catch (error) {
         console.error('❌ Error:', error);
     } finally {
         // Close the connection
         await mongoose.connection.close();
-        console.log('🛑 MongoDB connection closed');
+        console.log('\n🛑 MongoDB connection closed');
     }
 }
 

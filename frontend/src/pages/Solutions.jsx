@@ -2,266 +2,300 @@ import React, { useState, useEffect } from 'react';
 import { solutionService } from '../services/api';
 import './Solutions.css';
 
-const Solutions = () => {
+function Solutions() {
+  const user = JSON.parse(localStorage.getItem('user'));
+  const isTechnician = () => user && (user.role === 'agent' || user.role === 'admin');
+  const isAdmin = () => user && user.role === 'admin';
+  
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [showCreateModal, setShowCreateModal] = useState(false);
   const [solutions, setSolutions] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [showModal, setShowModal] = useState(false);
+  const [error, setError] = useState(null);
   const [selectedSolution, setSelectedSolution] = useState(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('');
-  const [formData, setFormData] = useState({
+  const [showViewModal, setShowViewModal] = useState(false);
+
+  const [newSolution, setNewSolution] = useState({
     title: '',
-    description: '',
     category: '',
+    description: '',
     content: ''
   });
 
-  const user = JSON.parse(localStorage.getItem('user'));
-  const isAdminOrAgent = user?.role === 'admin' || user?.role === 'agent';
+  const categories = ['all', 'Account Management', 'Network', 'Software', 'Hardware', 'Other'];
 
+  // Fetch solutions from database
   useEffect(() => {
+    const fetchSolutions = async () => {
+      try {
+        setLoading(true);
+        const fetchedSolutions = await solutionService.getSolutions();
+        setSolutions(fetchedSolutions);
+        setError(null);
+      } catch (error) {
+        console.error('Error fetching solutions:', error);
+        setError('Failed to load solutions. Please try again later.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
     fetchSolutions();
   }, []);
-
-  const fetchSolutions = async () => {
-    try {
-      const response = await solutionService.getSolutions();
-      setSolutions(response);
-    } catch (error) {
-      setError('Failed to fetch solutions: ' + error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleEdit = (solution) => {
-    setSelectedSolution(solution);
-    setFormData({
-      title: solution.title,
-      description: solution.description,
-      category: solution.category,
-      content: solution.content
-    });
-    setShowModal(true);
-  };
-
-  const handleDelete = async (solutionId) => {
-    if (window.confirm('Are you sure you want to delete this solution?')) {
-      try {
-        await solutionService.deleteSolution(solutionId);
-        setSolutions(solutions.filter(s => s._id !== solutionId));
-      } catch (error) {
-        const errorMessage = error.response?.data?.message || error.message || 'Failed to delete solution';
-        setError(errorMessage);
-        console.error('Error deleting solution:', error);
-      }
-    }
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      if (selectedSolution) {
-        const updated = await solutionService.updateSolution(selectedSolution._id, formData);
-        setSolutions(solutions.map(s => s._id === selectedSolution._id ? updated : s));
-      } else {
-        const newSolution = await solutionService.createSolution(formData);
-        setSolutions([newSolution, ...solutions]);
-      }
-      setShowModal(false);
-      setSelectedSolution(null);
-      setFormData({ title: '', description: '', category: '', content: '' });
-    } catch (error) {
-      const errorMessage = error.response?.data?.message || error.message || 'Failed to save solution';
-      setError(errorMessage);
-      console.error('Error saving solution:', error);
-    }
-  };
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
 
   const filteredSolutions = solutions.filter(solution => {
     const matchesSearch = solution.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          solution.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = !selectedCategory || solution.category === selectedCategory;
+    const matchesCategory = selectedCategory === 'all' || solution.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
 
+  const handleCreateSolution = async (e) => {
+    e.preventDefault();
+    try {
+      const createdSolution = await solutionService.createSolution(newSolution);
+      setSolutions(prev => [createdSolution, ...prev]);
+      setNewSolution({
+        title: '',
+        category: '',
+        description: '',
+        content: ''
+      });
+      setShowCreateModal(false);
+      alert('Solution added to knowledge base successfully!');
+    } catch (error) {
+      console.error('Error creating solution:', error);
+      alert('Failed to create solution. Please try again.');
+    }
+  };
+
+  const handleViewSolution = async (solutionId) => {
+    try {
+      const fullSolution = await solutionService.getSolution(solutionId);
+      setSelectedSolution(fullSolution);
+      setShowViewModal(true);
+      
+      // Update the local state to reflect the view count increment
+      setSolutions(prev => prev.map(sol => 
+        sol._id === solutionId 
+          ? { ...sol, views: sol.views + 1 }
+          : sol
+      ));
+    } catch (error) {
+      console.error('Error viewing solution:', error);
+    }
+  };
+
   if (loading) {
-    return <div className="loading">Loading solutions...</div>;
+    return (
+      <div className="solutions-page">
+        <div className="loading-container">
+          <h2>Loading solutions...</h2>
+        </div>
+      </div>
+    );
   }
 
-  const categories = ['Account Management', 'Network', 'Software', 'Hardware', 'Other'];
+  if (error) {
+    return (
+      <div className="solutions-page">
+        <div className="error-container">
+          <h2>Error</h2>
+          <p>{error}</p>
+          <button onClick={() => window.location.reload()}>Retry</button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="solutions-page">
       <div className="solutions-header">
-        <h1>Knowledge Base Solutions</h1>
-        <p>Find answers to common questions and technical issues</p>
-      </div>
-
-      {error && (
-        <div className="error-message">
-          {error}
-          <button onClick={() => setError('')}>×</button>
-        </div>
-      )}
-
-      <div className="solutions-controls">
-        <div className="search-container">
-          <input
-            type="text"
-            className="search-input"
-            placeholder="Search solutions..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
-        <div className="filter-container">
-          <select
-            className="category-filter"
-            value={selectedCategory}
-            onChange={(e) => setSelectedCategory(e.target.value)}
-          >
-            <option value="">All Categories</option>
-            {categories.map(category => (
-              <option key={category} value={category}>{category}</option>
-            ))}
-          </select>
-        </div>
-        {isAdminOrAgent && (
+        <h1>Knowledge Base</h1>
+        <p>Browse documented solutions and troubleshooting guides</p>
+        {(isTechnician() || isAdmin()) && (
           <button 
+            onClick={() => setShowCreateModal(true)}
             className="add-solution-btn"
-            onClick={() => {
-              setSelectedSolution(null);
-              setFormData({ title: '', description: '', category: '', content: '' });
-              setShowModal(true);
-            }}
           >
-            Add New Solution
+            📝 Add New Solution
           </button>
         )}
       </div>
 
-      <div className="results-info">
-        Showing {filteredSolutions.length} solutions
+      {/* Search and Filter Controls */}
+      <div className="solutions-controls">
+        <div className="search-container">
+          <input
+            type="text"
+            placeholder="Search solutions..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="search-input"
+          />
+        </div>
+        <div className="filter-container">
+          <select
+            value={selectedCategory}
+            onChange={(e) => setSelectedCategory(e.target.value)}
+            className="category-filter"
+          >
+            {categories.map(category => (
+              <option key={category} value={category}>
+                {category === 'all' ? 'All Categories' : category}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
 
-      {filteredSolutions.length === 0 ? (
-        <div className="no-results">
-          <h3>No solutions found</h3>
-          <p>Try adjusting your search or filters</p>
-        </div>
-      ) : (
-        <div className="solutions-grid">
-          {filteredSolutions.map(solution => (
-            <div key={solution._id} className="solution-card">
-              <div className="solution-header">
-                <span className="solution-category">{solution.category}</span>
-                {isAdminOrAgent && (
-                  <div className="solution-actions">
-                    <button 
-                      className="edit-btn"
-                      onClick={() => handleEdit(solution)}
-                    >
-                      Edit
-                    </button>
-                    <button 
-                      className="delete-btn"
-                      onClick={() => handleDelete(solution._id)}
-                    >
-                      Delete
-                    </button>
-                  </div>
-                )}
-              </div>
-              <div className="solution-content">
-                <h3>{solution.title}</h3>
-                <p className="solution-description">{solution.description}</p>
-              </div>
-              <div className="solution-footer">
-                <div className="solution-meta">
-                  <span>{solution.views} views</span>
-                  <span>Created {new Date(solution.createdAt).toLocaleDateString()}</span>
-                </div>
+      {/* Solutions Grid */}
+      <div className="solutions-grid">
+        {filteredSolutions.map(solution => (
+          <div key={solution._id} className="solution-card">
+            <div className="solution-header">
+              <h3>{solution.title}</h3>
+              <span className="category-badge">{solution.category}</span>
+            </div>
+            
+            <p className="solution-description">{solution.description}</p>
+            
+            <div className="solution-actions">
+              <button 
+                onClick={() => handleViewSolution(solution._id)}
+                className="view-solution-btn"
+              >
+                📖 View Solution
+              </button>
+            </div>
+            
+            <div className="solution-footer">
+              <div className="solution-meta">
+                <span>Views: {solution.views || 0}</span>
+                <span>{new Date(solution.createdAt).toLocaleDateString()}</span>
               </div>
             </div>
-          ))}
+          </div>
+        ))}
+      </div>
+
+      {filteredSolutions.length === 0 && (
+        <div className="no-results">
+          <h3>No solutions found</h3>
+          <p>Try adjusting your search terms or category filter.</p>
         </div>
       )}
 
-      {showModal && (
+      {/* View Solution Modal */}
+      {showViewModal && selectedSolution && (
         <div className="modal-overlay">
           <div className="modal-content">
             <div className="modal-header">
-              <h2>{selectedSolution ? 'Edit Solution' : 'Add New Solution'}</h2>
-              <button className="close-btn" onClick={() => setShowModal(false)}>&times;</button>
+              <h2>{selectedSolution.title}</h2>
+              <button
+                onClick={() => setShowViewModal(false)}
+                className="close-btn"
+              >
+                ×
+              </button>
             </div>
-            <form className="solution-form" onSubmit={handleSubmit}>
+            <div className="solution-detail">
+              <div className="solution-category">
+                <span className="category-badge">{selectedSolution.category}</span>
+              </div>
+              <div className="solution-description">
+                <h4>Description:</h4>
+                <p>{selectedSolution.description}</p>
+              </div>
+              <div className="solution-content">
+                <h4>Solution:</h4>
+                <div className="content-full">
+                  {selectedSolution.content.split('\n').map((line, index) => (
+                    <p key={index}>{line}</p>
+                  ))}
+                </div>
+              </div>
+              <div className="solution-meta">
+                <span>Views: {selectedSolution.views || 0}</span>
+                <span>Created: {new Date(selectedSolution.createdAt).toLocaleDateString()}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Create Solution Modal */}
+      {showCreateModal && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h2>Add New Solution</h2>
+              <button
+                onClick={() => setShowCreateModal(false)}
+                className="close-btn"
+              >
+                ×
+              </button>
+            </div>
+            <form onSubmit={handleCreateSolution} className="solution-form">
               <div className="form-group">
-                <label htmlFor="title">Title</label>
+                <label>Title *</label>
                 <input
                   type="text"
-                  id="title"
-                  name="title"
-                  value={formData.title}
-                  onChange={handleInputChange}
-                  className="form-input"
+                  value={newSolution.title}
+                  onChange={(e) => setNewSolution({...newSolution, title: e.target.value})}
                   required
+                  className="form-input"
+                  placeholder="Brief title describing the solution"
                 />
               </div>
+
               <div className="form-group">
-                <label htmlFor="description">Description</label>
-                <input
-                  type="text"
-                  id="description"
-                  name="description"
-                  value={formData.description}
-                  onChange={handleInputChange}
-                  className="form-input"
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label htmlFor="category">Category</label>
+                <label>Category *</label>
                 <select
-                  id="category"
-                  name="category"
-                  value={formData.category}
-                  onChange={handleInputChange}
-                  className="form-input"
+                  value={newSolution.category}
+                  onChange={(e) => setNewSolution({...newSolution, category: e.target.value})}
                   required
+                  className="form-input"
                 >
-                  <option value="">Select a category</option>
-                  {categories.map(category => (
+                  <option value="">Select Category</option>
+                  {categories.slice(1).map(category => (
                     <option key={category} value={category}>{category}</option>
                   ))}
                 </select>
               </div>
+
               <div className="form-group">
-                <label htmlFor="content">Content</label>
+                <label>Description *</label>
                 <textarea
-                  id="content"
-                  name="content"
-                  value={formData.content}
-                  onChange={handleInputChange}
-                  className="form-textarea"
+                  value={newSolution.description}
+                  onChange={(e) => setNewSolution({...newSolution, description: e.target.value})}
                   required
+                  className="form-textarea"
+                  rows="3"
+                  placeholder="Describe the problem this solution addresses"
                 />
               </div>
+
+              <div className="form-group">
+                <label>Solution Content *</label>
+                <textarea
+                  value={newSolution.content}
+                  onChange={(e) => setNewSolution({...newSolution, content: e.target.value})}
+                  required
+                  className="form-textarea"
+                  rows="6"
+                  placeholder="Detailed solution steps and information"
+                />
+              </div>
+
               <div className="modal-actions">
-                <button type="button" className="cancel-btn" onClick={() => setShowModal(false)}>
+                <button type="button" onClick={() => setShowCreateModal(false)} className="cancel-btn">
                   Cancel
                 </button>
                 <button type="submit" className="submit-btn">
-                  {selectedSolution ? 'Update' : 'Create'}
+                  Add Solution
                 </button>
               </div>
             </form>
@@ -270,6 +304,6 @@ const Solutions = () => {
       )}
     </div>
   );
-};
+}
 
 export default Solutions;

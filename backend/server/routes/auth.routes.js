@@ -2,27 +2,50 @@ const express = require('express');
 const router = express.Router();
 const passport = require('passport');
 const jwt = require('jsonwebtoken');
-const User = require('../models/user.model');
+const User = require('../models/user');
 
-// Google OAuth routes
-router.get('/google',
-  passport.authenticate('google', { scope: ['profile', 'email'] })
-);
+// Check if Google OAuth is configured
+const isGoogleConfigured = process.env.GOOGLE_CLIENT_ID && 
+                          process.env.GOOGLE_CLIENT_SECRET && 
+                          process.env.GOOGLE_CLIENT_ID !== 'your_google_client_id_here' && 
+                          process.env.GOOGLE_CLIENT_SECRET !== 'your_google_client_secret_here';
 
-router.get('/google/callback',
-  passport.authenticate('google', { failureRedirect: '/login' }),
-  (req, res) => {
-    // Generate JWT token
-    const token = jwt.sign(
-      { id: req.user._id, email: req.user.email },
-      process.env.JWT_SECRET,
-      { expiresIn: '24h' }
-    );
+// Google OAuth routes - only if configured
+if (isGoogleConfigured) {
+  router.get('/google',
+    passport.authenticate('google', { scope: ['profile', 'email'] })
+  );
 
-    // Redirect to frontend with token
-    res.redirect(`${process.env.FRONTEND_URL}/auth/callback?token=${token}`);
-  }
-);
+  router.get('/google/callback',
+    passport.authenticate('google', { failureRedirect: '/login' }),
+    (req, res) => {
+      // Generate JWT token
+      const token = jwt.sign(
+        { id: req.user._id, email: req.user.email },
+        process.env.JWT_SECRET,
+        { expiresIn: '24h' }
+      );
+
+      // Redirect to frontend with token
+      res.redirect(`${process.env.FRONTEND_URL}/auth/callback?token=${token}`);
+    }
+  );
+} else {
+  // Provide fallback routes when Google OAuth is not configured
+  router.get('/google', (req, res) => {
+    res.status(503).json({ 
+      message: 'Google OAuth not configured',
+      error: 'Google OAuth credentials not provided in environment variables'
+    });
+  });
+
+  router.get('/google/callback', (req, res) => {
+    res.status(503).json({ 
+      message: 'Google OAuth not configured',
+      error: 'Google OAuth credentials not provided in environment variables'
+    });
+  });
+}
 
 // Regular login route
 router.post('/login', async (req, res) => {

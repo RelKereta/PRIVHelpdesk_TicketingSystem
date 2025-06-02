@@ -1,0 +1,28 @@
+{
+  "name": "priv-helpdesk-system",
+  "version": "1.0.0",
+  "description": "PRIV Helpdesk Ticketing System",
+  "scripts": {
+    "start": "echo 'Use npm run start:frontend or npm run start:backend or npm run start:both'",
+    "start:backend": "cd backend/server && npm start",
+    "start:frontend": "cd frontend && npm start",
+    "start:both": "concurrently \"npm run start:backend\" \"npm run start:frontend\"",
+    "dev:backend": "cd backend/server && npm run dev",
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "install:all": "npm install --prefix backend/server && npm install --prefix frontend",
+    "build": "cd frontend && npm run build",
+    "init-db": "cd backend/server && node init-db.js"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.0"
+  },
+  "keywords": [
+    "helpdesk",
+    "ticketing",
+    "system",
+    "support"
+  ],
+  "author": "PRIV Team",
+  "license": "MIT"
+} 
