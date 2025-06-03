@@ -5,7 +5,7 @@ services:
     image: marputtt/priv-helpdesk-backend:latest
     restart: always
     environment:
-      PORT: 3000
+      PORT: ${PORT}
       MONGO_URI: ${MONGO_URI}
       REFRESH_TOKEN_SECRET: ${REFRESH_TOKEN_SECRET}
       FRONTEND_URL: ${FRONTEND_URL}

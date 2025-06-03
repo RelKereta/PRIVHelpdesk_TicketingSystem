@@ -2,7 +2,7 @@ require('dotenv').config();
 
 module.exports = {
   // Server configuration
-  port: process.env.PORT || 3000,
+  port: process.env.PORT || 3014,
   nodeEnv: process.env.NODE_ENV || 'development',
 
   // MongoDB configuration
