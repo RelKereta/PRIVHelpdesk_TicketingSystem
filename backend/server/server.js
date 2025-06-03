@@ -12,12 +12,25 @@ const config = require('./config/config');
 const solutionRoutes = require('./routes/solutionRoutes');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3014;  // Match docker-compose.yml default
 
 // Middleware
 app.use(cors(config.corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Root route to prevent 404 on domain access
+app.get('/', (req, res) => {
+  res.json({ 
+    message: 'PRIV Helpdesk API Server', 
+    status: 'running',
+    version: '1.0.0',
+    endpoints: {
+      health: '/health',
+      api: '/api/*'
+    }
+  });
+});
 
 // Routes
 app.use('/api/health', healthRoutes);

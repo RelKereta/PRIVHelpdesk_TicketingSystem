@@ -1,6 +1,9 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:3000/api';
+// Use environment-based API URL configuration
+const API_URL = process.env.NODE_ENV === 'production' 
+  ? '/api'  // Use relative path in production (nginx will proxy)
+  : 'http://localhost:3014/api';  // Point to correct backend port in development
 
 // Create axios instance
 const api = axios.create({
