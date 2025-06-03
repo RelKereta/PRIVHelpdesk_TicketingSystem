@@ -12,7 +12,7 @@ const config = require('./config/config');
 const solutionRoutes = require('./routes/solutionRoutes');
 
 const app = express();
-const PORT = process.env.PORT || 3014;  // Match docker-compose.yml default
+const PORT = process.env.PORT || 3000;  // Match docker-compose.yml default
 
 // Middleware
 app.use(cors(config.corsOptions));

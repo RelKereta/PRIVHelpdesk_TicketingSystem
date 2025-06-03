@@ -112,7 +112,7 @@ async function runDiagnostics() {
   console.log('\n💡 Troubleshooting Tips:');
   console.log('1. Make sure MongoDB server is running and accessible');
   console.log('2. Check if the MongoDB URI credentials are correct');
-  console.log('3. Verify that port 3014 is not already in use');
+  console.log('3. Verify that port 3000 is not already in use');
   console.log('4. Check if there are any firewall issues blocking connections');
   console.log('5. Ensure all required npm packages are installed');
 }

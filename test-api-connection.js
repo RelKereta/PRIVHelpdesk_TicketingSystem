@@ -2,9 +2,9 @@ const axios = require('axios');
 
 // Test API endpoints
 const testEndpoints = [
-  'http://localhost:3014',
-  'http://localhost:3014/health',
-  'http://localhost:3014/api/health',
+  'http://localhost:3000',
+  'http://localhost:3000/health',
+  'http://localhost:3000/api/health',
   'https://e2425-wads-l4acg7-server.csbihub.id',
   'https://e2425-wads-l4acg7-server.csbihub.id/health',
   'https://e2425-wads-l4acg7-server.csbihub.id/api/health'
