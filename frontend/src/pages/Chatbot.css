@@ -26,6 +26,13 @@
   padding: 16px 0;
 }
 
+.chatbot-iframe {
+  flex: 1;
+  width: 100%;
+  border: none;
+  background: #fff;
+}
+
 .chatbot-messages {
   flex: 1;
   overflow-y: auto;
