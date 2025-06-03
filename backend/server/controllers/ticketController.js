@@ -8,7 +8,7 @@ const createTicket = async (req, res) => {
     const { title, description, category, priority } = req.body;
     
     // Get the authenticated user
-    const userId = req.headers['x-user-id'];
+    const userId = req.headers['x-user-id'] || req.headers['X-User-Id'];
     console.log('User ID from headers:', userId);
     
     if (!userId) {
@@ -77,7 +77,7 @@ const createTicket = async (req, res) => {
 const getTickets = async (req, res) => {
   try {
     console.log('GET /api/tickets called');
-    const userId = req.headers['x-user-id'];
+    const userId = req.headers['x-user-id'] || req.headers['X-User-Id'];
     console.log('User ID from headers:', userId);
     
     // Check if user ID is provided
@@ -136,31 +136,105 @@ const getTickets = async (req, res) => {
 // Get a single ticket by ID
 const getTicketById = async (req, res) => {
   try {
+    console.log('=== GET TICKET BY ID REQUEST ===');
     const { id } = req.params;
-    const userId = req.headers['x-user-id'];
+    const userId = req.headers['x-user-id'] || req.headers['X-User-Id'];
+    
+    console.log('Request details:', {
+      ticketId: id,
+      userId: userId,
+      headers: req.headers
+    });
+
+    if (!userId) {
+      console.log('ERROR: No user ID provided in headers');
+      return res.status(401).json({ message: 'User ID is required' });
+    }
+
     const user = await User.findById(userId);
+    console.log('User lookup result:', user ? {
+      id: user._id,
+      username: user.username,
+      role: user.role
+    } : 'User not found');
     
     if (!user) {
+      console.log('ERROR: User not found');
       return res.status(404).json({ message: 'User not found' });
     }
 
-    const ticket = await Ticket.findById(id)
-      .populate('requester.userId', 'firstName lastName email department')
-      .populate('assignee.userId', 'firstName lastName email')
-      .populate('comments.author.userId', 'firstName lastName');
+    console.log('Looking up ticket with ID:', id);
+    const ticket = await Ticket.findById(id);
 
     if (!ticket) {
+      console.log('ERROR: Ticket not found');
       return res.status(404).json({ message: 'Ticket not found' });
     }
 
+    console.log('Found ticket:', {
+      id: ticket._id,
+      ticketNumber: ticket.ticketNumber,
+      title: ticket.title,
+      requester: ticket.requester,
+      assignee: ticket.assignee
+    });
+
     // Check if user can access this ticket
-    if (!user.canAccessTicket(ticket)) {
+    console.log('Checking access permissions...');
+    console.log('User ID:', user._id.toString());
+    console.log('Ticket requester ID:', ticket.requester.userId.toString());
+    console.log('User role:', user.role);
+    console.log('Ticket assignee:', ticket.assignee);
+
+    // Debug the canAccessTicket method step by step
+    console.log('=== PERMISSION DEBUGGING ===');
+    console.log('1. Is user admin?', user.role === 'admin');
+    console.log('2. Is user agent?', user.role === 'agent');
+    console.log('3. Is user the requester?', ticket.requester.userId.toString() === user._id.toString());
+    console.log('4. Is user assigned to ticket?', ticket.assignee && ticket.assignee.userId && ticket.assignee.userId.toString() === user._id.toString());
+
+    // DIRECT PERMISSION CHECK - bypass User model method for reliability
+    let canAccess = false;
+    
+    // Admin can access all tickets
+    if (user.role === 'admin') {
+      canAccess = true;
+      console.log('Access granted: User is admin');
+    }
+    // Agent can access all tickets
+    else if (user.role === 'agent') {
+      canAccess = true;
+      console.log('Access granted: User is agent');
+    }
+    // User can access their own tickets
+    else if (ticket.requester.userId.toString() === user._id.toString()) {
+      canAccess = true;
+      console.log('Access granted: User is the ticket requester');
+    }
+    // User can access tickets assigned to them
+    else if (ticket.assignee && ticket.assignee.userId && ticket.assignee.userId.toString() === user._id.toString()) {
+      canAccess = true;
+      console.log('Access granted: User is assigned to ticket');
+    }
+    else {
+      console.log('Access denied: No matching permission criteria');
+    }
+
+    console.log('Final permission result:', canAccess);
+
+    if (!canAccess) {
+      console.log('ERROR: Access denied');
       return res.status(403).json({ message: 'Access denied' });
     }
 
+    console.log('Access granted, returning ticket data');
     res.json(ticket);
   } catch (error) {
-    console.error('Error fetching ticket:', error);
+    console.error('Error fetching ticket:', {
+      message: error.message,
+      stack: error.stack,
+      name: error.name
+    });
     res.status(500).json({ message: 'Error fetching ticket', error: error.message });
   }
 };
@@ -169,7 +243,7 @@ const getTicketById = async (req, res) => {
 const updateTicket = async (req, res) => {
   try {
     const { id } = req.params;
-    const userId = req.headers['x-user-id'];
+    const userId = req.headers['x-user-id'] || req.headers['X-User-Id'];
     const user = await User.findById(userId);
     
     if (!user) {
@@ -234,7 +308,7 @@ const assignTicket = async (req, res) => {
     console.log('=== TICKET ASSIGNMENT REQUEST ===');
     const { id } = req.params;
     const { assigneeId } = req.body;
-    const userId = req.headers['x-user-id'];
+    const userId = req.headers['x-user-id'] || req.headers['X-User-Id'];
     
     console.log('Request details:', {
       ticketId: id,
@@ -351,7 +425,7 @@ const addComment = async (req, res) => {
   try {
     const { id } = req.params;
     const { text } = req.body;
-    const userId = req.headers['x-user-id'];
+    const userId = req.headers['x-user-id'] || req.headers['X-User-Id'];
     const user = await User.findById(userId);
     
     if (!user) {
@@ -391,7 +465,7 @@ const resolveTicket = async (req, res) => {
   try {
     const { id } = req.params;
     const { resolution } = req.body;
-    const userId = req.headers['x-user-id'];
+    const userId = req.headers['x-user-id'] || req.headers['X-User-Id'];
     const user = await User.findById(userId);
     
     if (!user) {
@@ -451,7 +525,7 @@ const resolveTicket = async (req, res) => {
 const deleteTicket = async (req, res) => {
   try {
     const { id } = req.params;
-    const userId = req.headers['x-user-id'];
+    const userId = req.headers['x-user-id'] || req.headers['X-User-Id'];
     const user = await User.findById(userId);
     
     if (!user) {

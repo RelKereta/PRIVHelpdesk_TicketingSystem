@@ -151,16 +151,20 @@ userSchema.methods.getPermissions = function() {
 };
 
 userSchema.methods.canAccessTicket = function(ticket) {
+  // Admin can access all tickets
+  if (this.role === 'admin') {
+    return true;
+  }
+  // Agent can access all tickets (they have canViewAllTickets permission)
+  if (this.role === 'agent') {
+    return true;
+  }
   // User can access their own tickets
   if (ticket.requester.userId.toString() === this._id.toString()) {
     return true;
   }
-  // Agent/Admin can access assigned tickets
+  // Agent/Admin can access assigned tickets (redundant now but keeping for clarity)
   if (ticket.assignee && ticket.assignee.userId && ticket.assignee.userId.toString() === this._id.toString()) {
-    return true;
-  }
-  // Admin can access all tickets
-  if (this.role === 'admin') {
     return true;
   }
   return false;

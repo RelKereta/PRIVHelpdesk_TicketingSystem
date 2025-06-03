@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { ticketService } from '../services/api';
 import './Community.css';
 
@@ -320,7 +321,16 @@ function Community() {
             <div className="header-cell">Actions</div>
           </div>
           
-          {filteredTickets.map(ticket => (
+          {filteredTickets
+            .filter(ticket => {
+              // Only show tickets the user can actually access
+              const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+              if (!currentUser._id) return false;
+              return currentUser.role === 'admin' || 
+                     currentUser.role === 'agent' || 
+                     ticket.requester?.userId?.toString() === currentUser._id?.toString();
+            })
+            .map(ticket => (
             <div key={ticket._id} className="table-row">
               <div className="table-cell ticket-id">{ticket.ticketNumber}</div>
               <div className="table-cell ticket-title">{ticket.title}</div>
@@ -350,12 +360,13 @@ function Community() {
               <div className="table-cell requester">{ticket.requester?.username || 'Unknown'}</div>
               <div className="table-cell created">{formatDate(ticket.createdAt)}</div>
               <div className="table-cell actions">
-                <button 
+                {/* All visible tickets now have View access */}
+                <Link 
+                  to={`/tickets/${ticket._id}`}
                   className="btn-sm btn-primary"
-                  onClick={() => window.location.href = `/tickets/${ticket._id}/edit`}
                 >
                   View
-                </button>
+                </Link>
               </div>
             </div>
           ))}

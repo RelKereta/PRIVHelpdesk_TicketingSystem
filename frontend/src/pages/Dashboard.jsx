@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import TicketsTable from '../components/TicketsTable.jsx';
 import ErrorBoundary from '../components/ErrorBoundary.jsx';
 import './Dashboard.css';
@@ -355,6 +356,14 @@ function Dashboard() {
                     <div className="ticket-meta">
                       <span>Created: {new Date(ticket.createdAt).toLocaleDateString()}</span>
                       <span>SLA: {formatTimeRemaining(ticket.slaDeadline)}</span>
+                    </div>
+                    <div className="ticket-actions">
+                      <Link 
+                        to={`/tickets/${ticket._id}`}
+                        className="view-ticket-btn"
+                      >
+                        View Details
+                      </Link>
                     </div>
                   </div>
                 ))}
