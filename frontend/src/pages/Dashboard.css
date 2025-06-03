@@ -370,6 +370,27 @@
   gap: 10px;
 }
 
+.view-ticket-btn {
+  padding: 6px 12px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background-color 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.view-ticket-btn:hover {
+  background-color: #0056b3;
+  color: white;
+  text-decoration: none;
+}
+
 .resolve-btn {
   padding: 6px 12px;
   background-color: #28a745;

@@ -34,14 +34,24 @@ api.interceptors.response.use(
       status: error.response?.status,
       data: error.response?.data,
       message: error.message,
-      url: error.config?.url
+      url: error.config?.url,
+      headers: error.config?.headers
     });
 
     // Handle authentication and authorization errors
     if (error.response?.status === 401 || error.response?.status === 403) {
-      console.log('Authentication/Authorization error detected, redirecting to signin...');
-      localStorage.removeItem('user');
-      window.location.href = '/signin';
+      console.log('🚨 Authentication/Authorization error detected');
+      console.log('📍 URL that failed:', error.config?.url);
+      console.log('📋 Error details:', error.response?.data);
+      console.log('🔑 Request headers:', error.config?.headers);
+      console.log('👤 User in localStorage:', localStorage.getItem('user'));
+      
+      // Re-enable automatic redirect to test if permission fix worked
+      if (error.response?.status === 401) {
+        localStorage.removeItem('user');
+        window.location.href = '/signin';
+      }
+      
       return Promise.reject(error);
     }
     

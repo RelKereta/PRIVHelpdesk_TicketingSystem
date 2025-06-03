@@ -17,14 +17,24 @@ const TicketsTable = () => {
 
         // Get current user
         const userData = await authService.getCurrentUser();
+        console.log('🎫 TicketsTable: Current user:', userData);
         setUser(userData);
         
         // Fetch tickets
         const response = await ticketService.getTickets();
-        console.log('Fetched tickets:', response);
+        console.log('🎫 TicketsTable: Fetched tickets:', response);
+        console.log('🎫 TicketsTable: Number of tickets:', response.length);
+        
+        // Debug: Check which tickets the user should be able to view
+        if (userData.role === 'user') {
+          const userTickets = response.filter(ticket => ticket.requester?.userId === userData._id);
+          console.log('🎫 TicketsTable: User can view these tickets:', userTickets);
+          console.log('🎫 TicketsTable: User ticket count:', userTickets.length);
+        }
+        
         setTickets(response);
       } catch (err) {
-        console.error('Tickets fetch error:', err);
+        console.error('🚨 TicketsTable: Fetch error:', err);
         setError(err.response?.data?.message || 'Failed to fetch tickets');
       } finally {
         setLoading(false);
@@ -53,6 +63,33 @@ const TicketsTable = () => {
       case 'low': return 'priority-low';
       default: return '';
     }
+  };
+
+  // Debug helper function
+  const canUserViewTicket = (ticket) => {
+    if (!user) {
+      console.log('🔍 No user found');
+      return false;
+    }
+    
+    // Convert IDs to strings for comparison
+    const ticketRequesterUserId = ticket.requester?.userId?.toString();
+    const currentUserId = user._id?.toString();
+    
+    const canView = user.role === 'admin' || 
+                   user.role === 'agent' || 
+                   ticketRequesterUserId === currentUserId;
+    
+    console.log(`🔍 Can view ticket ${ticket.ticketNumber || ticket._id}:`, {
+      ticketId: ticket._id,
+      ticketRequesterUserId: ticketRequesterUserId,
+      currentUserId: currentUserId,
+      userRole: user.role,
+      idsMatch: ticketRequesterUserId === currentUserId,
+      canView: canView
+    });
+    
+    return canView;
   };
 
   if (loading) {
@@ -93,7 +130,15 @@ const TicketsTable = () => {
             </tr>
           </thead>
           <tbody>
-            {tickets.map(ticket => (
+            {tickets
+              .filter(ticket => {
+                // Only show tickets the user can actually access
+                if (!user) return false;
+                return user.role === 'admin' || 
+                       user.role === 'agent' || 
+                       ticket.requester?.userId?.toString() === user._id?.toString();
+              })
+              .map(ticket => (
               <tr key={ticket._id}>
                 <td>{ticket.ticketNumber || ticket._id}</td>
                 <td>{ticket.title}</td>
@@ -113,16 +158,16 @@ const TicketsTable = () => {
                   <td>{ticket.assignee?.username || 'Unassigned'}</td>
                 )}
                 <td>
-                  {/* For admin, only show 'View' (was Edit) button, remove View button */}
+                  {/* All visible tickets now have View access */}
                   {user?.role === 'admin' ? (
                     <Link to={`/tickets/${ticket._id}/edit`} className="edit-btn">View</Link>
-                  ) : (
+                  ) : user?.role === 'agent' ? (
                     <>
                       <Link to={`/tickets/${ticket._id}`} className="view-btn">View</Link>
-                      {(user?.role === 'agent') && (
-                        <Link to={`/tickets/${ticket._id}/edit`} className="edit-btn">Edit</Link>
-                      )}
+                      <Link to={`/tickets/${ticket._id}/edit`} className="edit-btn">Edit</Link>
                     </>
+                  ) : (
+                    <Link to={`/tickets/${ticket._id}`} className="view-btn">View</Link>
                   )}
                 </td>
               </tr>
